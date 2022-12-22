@@ -53,7 +53,11 @@ where
                 line = lines.next() => match line {
                     None => break,
                     Some(Err(e)) => log::error!("{}", e),
-                    Some(Ok(line)) => kafka_producer.send(&vec!(), line.as_bytes()).await?,
+                    Some(Ok(line)) => {
+                        if let Err(e) = kafka_producer.send(&vec!(), line.as_bytes()).await {
+                            log::warn!("{}", e);
+                        }
+                    },
                 },
             }
         }

@@ -37,7 +37,9 @@ impl Server for UdpSocketServer {
                 _ = shutdown_trigger_receiver.recv() => return Ok(()),
                 len = socket.recv(&mut buf) => len?,
             };
-            kafka_producer.send(&vec![], &buf[..len]).await?;
+            if let Err(e) = kafka_producer.send(&vec![], &buf[..len]).await {
+                log::warn!("{}", e);
+            }
         }
     }
 }

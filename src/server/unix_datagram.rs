@@ -74,7 +74,9 @@ impl Server for UnixDatagramServer {
                     let mut buf = [0; 8192];
                     match socket.try_recv(&mut buf) {
                         Ok(n) => {
-                            kafka_producer.send(&vec!(), &buf[..n]).await?;
+                            if let Err(e) = kafka_producer.send(&vec!(), &buf[..n]).await {
+                                log::warn!("{}", e);
+                            }
                         }
                         Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => (),
                         Err(e) => {
