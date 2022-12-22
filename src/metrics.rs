@@ -21,10 +21,11 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use axum::Server;
-use opentelemetry::metrics::{Meter, MeterProvider};
+use opentelemetry::metrics::{Counter, Meter, MeterProvider};
 use opentelemetry::sdk::export::metrics::aggregation;
 use opentelemetry::sdk::metrics::{controllers, processors, selectors};
 use opentelemetry::sdk::Resource;
+use opentelemetry::{Context, KeyValue};
 use opentelemetry_prometheus::PrometheusExporter;
 use prometheus::{Encoder, TextEncoder};
 use std::net::SocketAddr;
@@ -99,4 +100,15 @@ impl Metrics {
             .meter_provider()?
             .meter(env!("CARGO_PKG_NAME")))
     }
+}
+
+#[macro_export]
+macro_rules! kv {
+    ($($key:expr => $value:expr),*) => {
+        &[$(KeyValue::new($key, $value)),*]
+    };
+}
+
+pub fn counter_inc(counter: &Counter<u64>, attributes: &[KeyValue]) {
+    counter.add(&Context::current(), 1, attributes)
 }

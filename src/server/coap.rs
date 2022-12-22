@@ -39,7 +39,7 @@ impl Server for CoapServer {
                     "produce" => match kafka_producer.send(&[], &request.message.payload).await {
                         Ok(()) => ResponseType::Changed,
                         Err(e) => {
-                            log::error!("{}", e);
+                            log::warn!("{}", e);
                             ResponseType::InternalServerError
                         }
                     },

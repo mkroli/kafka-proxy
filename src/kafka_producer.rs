@@ -19,7 +19,7 @@ use std::time::Duration;
 use anyhow::{bail, Result};
 use apache_avro::types::Value;
 use opentelemetry::metrics::{Counter, Meter};
-use opentelemetry::Context;
+use opentelemetry::KeyValue;
 use rdkafka::message::ToBytes;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
@@ -29,6 +29,8 @@ use schema_registry_converter::async_impl::schema_registry::SrSettings;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 
 use crate::cli::Producer;
+use crate::kv;
+use crate::metrics::counter_inc;
 
 const TIMEOUT: Timeout = Timeout::After(Duration::from_millis(3000));
 
@@ -36,6 +38,7 @@ pub struct KafkaProducer {
     topic: String,
     producer: FutureProducer,
     schema_registry: Option<SchemaRegistry>,
+    producer_requests_counter: Counter<u64>,
     producer_sent_counter: Counter<u64>,
 }
 
@@ -65,16 +68,20 @@ impl KafkaProducer {
             }
         };
 
+        let producer_requests_counter = meter
+            .u64_counter("producer.requests")
+            .with_description("Number of requests")
+            .init();
         let producer_sent_counter = meter
             .u64_counter("kafka.produced")
             .with_description("Number of produced Kafka Records")
             .init();
-        producer_sent_counter.add(&Context::current(), 0, &[]);
 
         Ok(KafkaProducer {
             topic: cfg.topic,
             producer,
             schema_registry,
+            producer_requests_counter,
             producer_sent_counter,
         })
     }
@@ -104,7 +111,7 @@ impl KafkaProducer {
         }
     }
 
-    pub async fn send<K>(&self, key: &K, payload: &[u8]) -> Result<()>
+    async fn produce<K>(&self, key: &K, payload: &[u8]) -> Result<()>
     where
         K: ToBytes + ?Sized,
     {
@@ -114,7 +121,23 @@ impl KafkaProducer {
             .send(record, TIMEOUT)
             .await
             .map_err(|(e, _)| e)?;
-        self.producer_sent_counter.add(&Context::current(), 1, &[]);
         Ok(())
+    }
+
+    pub async fn send<K>(&self, key: &K, payload: &[u8]) -> Result<()>
+    where
+        K: ToBytes + ?Sized,
+    {
+        match self.produce(key, payload).await {
+            Ok(()) => {
+                counter_inc(&self.producer_requests_counter, kv!["success" => true]);
+                counter_inc(&self.producer_sent_counter, kv![]);
+                Ok(())
+            }
+            Err(e) => {
+                counter_inc(&self.producer_requests_counter, kv!["success" => false]);
+                Err(e)
+            }
+        }
     }
 }
