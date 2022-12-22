@@ -6,8 +6,8 @@ use tokio::sync::mpsc::Sender;
 use crate::kafka_producer::KafkaProducer;
 
 pub mod coap;
-pub mod file;
 pub mod rest;
+pub mod stream;
 pub mod udp;
 pub mod unix_datagram;
 
