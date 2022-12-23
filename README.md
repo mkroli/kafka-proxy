@@ -1,6 +1,13 @@
 # kafka-proxy
 
+[![Build](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml/badge.svg)](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml)
+
 ## Installation
+
+### Using Docker
+```bash
+docker run --rm -it ghcr.io/mkroli/kafka-proxy --help
+```
 
 ### Using Cargo
 ```bash
