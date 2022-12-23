@@ -38,6 +38,10 @@ jobs:
         run: |
           git config --global user.name "Michael Krolikowski"
           git config --global user.email "mkroli@yahoo.de"
+      - name: Clean
+        uses: actions-rs/cargo@v1
+        with:
+          command: clean
       - name: Release
         uses: actions-rs/cargo@v1
         with:
