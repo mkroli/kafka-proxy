@@ -42,22 +42,22 @@ pub struct Producer {
 
 #[derive(Subcommand)]
 pub enum ServerCommand {
-    #[command(name = "rest")]
-    Rest(RestServer),
-    #[command(name = "coap")]
-    Coap(CoapServer),
-    #[command(name = "unix-dgram")]
-    UnixDatagram(UnixDatagramServer),
     #[command(name = "stdin")]
     StdIn(StdInServer),
     #[command(name = "file")]
     File(FileServer),
+    #[command(name = "unix-dgram")]
+    UnixDatagram(UnixDatagramServer),
     #[command(name = "unix")]
     UnixSocket(UnixSocketServer),
-    #[command(name = "tcp")]
-    TcpSocket(TcpSocketServer),
     #[command(name = "udp")]
     UdpSocket(UdpSocketServer),
+    #[command(name = "tcp")]
+    TcpSocket(TcpSocketServer),
+    #[command(name = "coap")]
+    Coap(CoapServer),
+    #[command(name = "rest")]
+    Rest(RestServer),
 }
 
 #[derive(Args)]
