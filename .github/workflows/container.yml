@@ -2,7 +2,7 @@ name: Container
 
 on:
   push:
-    branches: [ "main", "container" ]
+    tags: '*'
 
 jobs:
   container:
@@ -27,4 +27,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/mkroli/kafka-proxy:latest
+            "ghcr.io/mkroli/kafka-proxy:latest"
+            "ghcr.io/mkroli/kafka-proxy:${{github.ref_name}}"
