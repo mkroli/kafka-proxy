@@ -38,4 +38,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: release
-          args: -x ${{ inputs.level }}
+          args: -x --no-confirm ${{ inputs.level }}
