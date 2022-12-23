@@ -1,3 +1,5 @@
+name: Release
+
 on:
   workflow_dispatch:
     inputs:
@@ -14,6 +16,9 @@ on:
           - rc
           - beta
           - alpha
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   release:
