@@ -16,11 +16,12 @@
 
 use anyhow::Result;
 use axum::extract::State;
-use axum::http::{header, StatusCode};
+use axum::headers::ContentType;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
-use axum::Router;
 use axum::Server;
+use axum::{Router, TypedHeader};
 use opentelemetry::metrics::{Counter, Meter, MeterProvider};
 use opentelemetry::sdk::export::metrics::aggregation;
 use opentelemetry::sdk::metrics::{controllers, processors, selectors};
@@ -49,7 +50,7 @@ impl IntoResponse for &Metrics {
         let encoder = TextEncoder::new();
         let mut result = Vec::new();
         let result = match encoder.encode(&metric_families, &mut result) {
-            Ok(()) => Ok(([(header::CONTENT_TYPE, "text/plain")], result)),
+            Ok(()) => Ok((TypedHeader(ContentType::text_utf8()), result)),
             Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
         };
         result.into_response()
