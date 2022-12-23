@@ -2,7 +2,7 @@ name: Container
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "container" ]
 
 jobs:
   container:
