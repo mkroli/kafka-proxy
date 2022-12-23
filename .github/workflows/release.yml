@@ -43,3 +43,5 @@ jobs:
         with:
           command: release
           args: -x --no-confirm --no-publish ${{ inputs.level }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
