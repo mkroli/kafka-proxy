@@ -15,7 +15,8 @@
  */
 
 use crate::cli::{TcpSocketServer, UnixSocketServer};
-use crate::server::stream::{StringStream, StringStreamResult};
+use crate::server::stream::{BytesStream, MessageStream};
+use anyhow::Result;
 use async_trait::async_trait;
 use tokio::io::{AsyncBufReadExt, BufStream};
 use tokio::net::{TcpListener, UnixListener};
@@ -25,8 +26,8 @@ use tokio_stream::wrappers::ReceiverStream;
 macro_rules! socket_string_stream {
     ($tp:ty, $self:ident => $listener:expr) => {
         #[async_trait]
-        impl StringStream for $tp {
-            async fn stream(&$self) -> StringStreamResult {
+        impl MessageStream for $tp {
+            async fn stream(&$self) -> Result<BytesStream> {
                 let listener = $listener;
                 let (snd, rcv) = mpsc::channel(1);
                 tokio::spawn(async move {
@@ -35,7 +36,7 @@ macro_rules! socket_string_stream {
                         tokio::spawn(async move {
                             let mut lines = BufStream::new(stream).lines();
                             while let Ok(Some(l)) = lines.next_line().await {
-                                match snd.send(Ok(l)).await {
+                                match snd.send(Ok(l.into())).await {
                                     Ok(()) => (),
                                     Err(_) => break,
                                 }

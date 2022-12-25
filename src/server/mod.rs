@@ -21,11 +21,10 @@ use tokio::sync::mpsc::Sender;
 
 use crate::kafka_producer::KafkaProducer;
 
-pub mod coap;
-pub mod rest;
-pub mod stream;
-pub mod udp;
-pub mod unix_datagram;
+mod coap;
+mod rest;
+mod stream;
+mod unix_datagram;
 
 #[async_trait]
 pub trait Server {

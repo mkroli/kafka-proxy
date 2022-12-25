@@ -16,26 +16,28 @@
 
 mod file;
 mod socket;
+mod udp;
 
 use crate::kafka_producer::KafkaProducer;
 use crate::server::Server;
 use anyhow::Result;
 use async_trait::async_trait;
+use futures::stream::StreamExt;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc::Sender;
-use tokio_stream::{Stream, StreamExt};
+use tokio_stream::Stream;
 
-type StringStreamResult = Result<Box<dyn Stream<Item = Result<String>> + Send + Unpin>>;
+type BytesStream = Box<dyn Stream<Item = Result<Vec<u8>>> + Send + Unpin>;
 
 #[async_trait]
-trait StringStream {
-    async fn stream(&self) -> StringStreamResult;
+trait MessageStream {
+    async fn stream(&self) -> Result<BytesStream>;
 }
 
 #[async_trait]
 impl<T> Server for T
 where
-    T: StringStream + Sync,
+    T: MessageStream + Sync,
 {
     async fn run(
         &self,
@@ -43,24 +45,22 @@ where
         mut shutdown_trigger_receiver: Receiver<()>,
         _shutdown_sender: Sender<()>,
     ) -> Result<()> {
-        let mut lines = tokio::select! {
+        let messages = tokio::select! {
             _ = shutdown_trigger_receiver.recv() => return Ok(()),
-            lines = self.stream() => lines?,
+            messages = self.stream() => messages?,
         };
-        loop {
-            tokio::select! {
-                _ = shutdown_trigger_receiver.recv() => break,
-                line = lines.next() => match line {
-                    None => break,
-                    Some(Err(e)) => log::error!("{}", e),
-                    Some(Ok(line)) => {
-                        if let Err(e) = kafka_producer.send(&vec!(), line.as_bytes()).await {
-                            log::warn!("{}", e);
-                        }
+        messages
+            .take_until(shutdown_trigger_receiver.recv())
+            .for_each_concurrent(1024, |msg| async {
+                match msg {
+                    Err(e) => log::error!("{}", e),
+                    Ok(msg) => match kafka_producer.send(&vec![], &msg).await {
+                        Ok(()) => (),
+                        Err(e) => log::warn!("{}", e),
                     },
-                },
-            }
-        }
+                };
+            })
+            .await;
         Ok(())
     }
 }

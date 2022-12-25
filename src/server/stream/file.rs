@@ -15,7 +15,8 @@
  */
 
 use crate::cli::{FileServer, StdInServer};
-use crate::server::stream::{StringStream, StringStreamResult};
+use crate::server::stream::{BytesStream, MessageStream};
+use anyhow::Result;
 use async_trait::async_trait;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -25,11 +26,15 @@ use tokio_stream::StreamExt;
 macro_rules! buf_reader_string_stream {
     ($tp:ty, $self:ident => $reader:expr) => {
         #[async_trait]
-        impl StringStream for $tp {
-            async fn stream(&$self) -> StringStreamResult {
+        impl MessageStream for $tp {
+            async fn stream(&$self) -> Result<BytesStream> {
                 let reader = BufReader::new($reader);
                 let stream = LinesStream::new(reader.lines());
-                let stream = stream.map(|s| s.map_err(|e| e.into()));
+                let stream = stream.map(|s| {
+                    s
+                        .map(|s| s.into())
+                        .map_err(|e| e.into())
+                });
                 Ok(Box::new(stream))
             }
         }

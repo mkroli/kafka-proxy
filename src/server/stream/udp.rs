@@ -15,31 +15,30 @@
  */
 
 use crate::cli::UdpSocketServer;
-use crate::kafka_producer::KafkaProducer;
-use crate::server::Server;
+use crate::server::stream::{BytesStream, MessageStream};
+use anyhow::Result;
 use async_trait::async_trait;
 use tokio::net::UdpSocket;
-use tokio::sync::broadcast::Receiver;
-use tokio::sync::mpsc::Sender;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
 
 #[async_trait]
-impl Server for UdpSocketServer {
-    async fn run(
-        &self,
-        kafka_producer: KafkaProducer,
-        mut shutdown_trigger_receiver: Receiver<()>,
-        _shutdown_sender: Sender<()>,
-    ) -> anyhow::Result<()> {
+impl MessageStream for UdpSocketServer {
+    async fn stream(&self) -> Result<BytesStream> {
         let socket = UdpSocket::bind(self.address).await?;
         let mut buf = [0; 8192];
-        loop {
-            let len = tokio::select! {
-                _ = shutdown_trigger_receiver.recv() => return Ok(()),
-                len = socket.recv(&mut buf) => len?,
-            };
-            if let Err(e) = kafka_producer.send(&vec![], &buf[..len]).await {
-                log::warn!("{}", e);
+        let (snd, rcv) = mpsc::channel(1);
+        tokio::spawn(async move {
+            loop {
+                let msg = match socket.recv(&mut buf).await {
+                    Ok(len) => Ok(buf[..len].into()),
+                    Err(e) => Err(e.into()),
+                };
+                if let Err(e) = snd.send(msg).await {
+                    log::warn!("{}", e);
+                }
             }
-        }
+        });
+        Ok(Box::new(ReceiverStream::new(rcv)))
     }
 }

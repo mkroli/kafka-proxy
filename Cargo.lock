@@ -870,6 +870,7 @@ dependencies = [
  "coap",
  "coap-lite",
  "fern",
+ "futures",
  "hyper",
  "log",
  "opentelemetry",
