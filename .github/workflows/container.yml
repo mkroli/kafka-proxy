@@ -3,6 +3,8 @@ name: Container
 on:
   push:
     tags: '*'
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
   container:

@@ -45,3 +45,6 @@ jobs:
         with:
           command: release
           args: -x --no-confirm --no-publish ${{ inputs.level }}
+  container:
+    needs: release
+    uses: ./.github/workflows/container.yml
