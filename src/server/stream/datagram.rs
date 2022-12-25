@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 
-use crate::cli::{TcpSocketServer, UnixSocketServer};
+use crate::cli::UdpSocketServer;
+use crate::cli::UnixDatagramServer;
 use crate::server::stream::{BytesStream, MessageStream};
 use anyhow::Result;
 use async_trait::async_trait;
-use tokio::io::{AsyncBufReadExt, BufStream};
-use tokio::net::{TcpListener, UnixListener};
+use tokio::net::UdpSocket;
+use tokio::net::UnixDatagram;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 
-macro_rules! socket_message_stream {
-    ($tp:ty, $self:ident => $listener:expr) => {
+macro_rules! datagram_socket_message_stream {
+    ($tp:ty, $self:ident => $socket:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
             async fn stream(&$self) -> Result<BytesStream> {
-                let listener = $listener;
+                let socket = $socket;
+                let mut buf = [0; 8192];
                 let (snd, rcv) = mpsc::channel(1);
                 tokio::spawn(async move {
-                    while let Ok((stream, _)) = listener.accept().await {
-                        let snd = snd.clone();
-                        tokio::spawn(async move {
-                            let mut lines = BufStream::new(stream).lines();
-                            while let Ok(Some(l)) = lines.next_line().await {
-                                match snd.send(Ok(l.into())).await {
-                                    Ok(()) => (),
-                                    Err(_) => break,
-                                }
-                            }
-                        });
+                    loop {
+                        let msg = match socket.recv(&mut buf).await {
+                            Ok(len) => Ok(buf[..len].into()),
+                            Err(e) => Err(e.into()),
+                        };
+                        if let Err(e) = snd.send(msg).await {
+                            log::warn!("{}", e);
+                        }
                     }
                 });
                 Ok(Box::new(ReceiverStream::new(rcv)))
@@ -50,6 +49,6 @@ macro_rules! socket_message_stream {
     };
 }
 
-socket_message_stream!(UnixSocketServer, self => UnixListener::bind(&self.file)?);
+datagram_socket_message_stream!(UdpSocketServer, self => UdpSocket::bind(self.address).await?);
 
-socket_message_stream!(TcpSocketServer, self => TcpListener::bind(self.address).await?);
+datagram_socket_message_stream!(UnixDatagramServer, self => UnixDatagram::bind(&self.path)?);

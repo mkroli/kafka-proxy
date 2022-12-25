@@ -23,7 +23,7 @@ use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_stream::wrappers::LinesStream;
 use tokio_stream::StreamExt;
 
-macro_rules! buf_reader_string_stream {
+macro_rules! buf_reader_message_stream {
     ($tp:ty, $self:ident => $reader:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
@@ -41,6 +41,6 @@ macro_rules! buf_reader_string_stream {
     };
 }
 
-buf_reader_string_stream!(StdInServer, self => tokio::io::stdin());
+buf_reader_message_stream!(StdInServer, self => tokio::io::stdin());
 
-buf_reader_string_stream!(FileServer, self => File::open(&self.file).await?);
+buf_reader_message_stream!(FileServer, self => File::open(&self.file).await?);

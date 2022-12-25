@@ -24,7 +24,6 @@ use crate::kafka_producer::KafkaProducer;
 mod coap;
 mod rest;
 mod stream;
-mod unix_datagram;
 
 #[async_trait]
 pub trait Server {

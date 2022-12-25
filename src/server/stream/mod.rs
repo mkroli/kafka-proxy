@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+mod datagram;
 mod file;
 mod socket;
-mod udp;
 
 use crate::kafka_producer::KafkaProducer;
 use crate::server::Server;
@@ -51,7 +51,7 @@ where
         };
         messages
             .take_until(shutdown_trigger_receiver.recv())
-            .for_each_concurrent(1024, |msg| async {
+            .for_each_concurrent(8192, |msg| async {
                 match msg {
                     Err(e) => log::error!("{}", e),
                     Ok(msg) => match kafka_producer.send(&vec![], &msg).await {
