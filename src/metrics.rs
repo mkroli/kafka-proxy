@@ -84,7 +84,7 @@ impl Metrics {
         let app = Router::new()
             .route("/metrics", get(Metrics::metrics_handler))
             .with_state(Arc::new(self));
-        Server::bind(&bind_address)
+        Server::try_bind(&bind_address)?
             .serve(app.into_make_service())
             .with_graceful_shutdown(async {
                 let _ = shutdown_trigger_receiver.recv().await;

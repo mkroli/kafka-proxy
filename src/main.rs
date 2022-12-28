@@ -112,7 +112,9 @@ async fn run() -> Result<()> {
 
     tokio::select! {
         _ = shutdown_recv.recv() => (),
-        _ = prometheus => (),
+        Ok(Err(e)) = prometheus => {
+            log::error!("{}", e);
+        },
         _ = shutdown_signal() => (),
     }
     shutdown_trigger_send.send(())?;
