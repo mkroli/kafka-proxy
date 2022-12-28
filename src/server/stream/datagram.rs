@@ -16,6 +16,7 @@
 
 use crate::cli::UdpSocketServer;
 use crate::cli::UnixDatagramServer;
+use crate::server::stream::cleanup::ListenerCleanup;
 use crate::server::stream::{BytesStream, MessageStream};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -56,4 +57,4 @@ macro_rules! datagram_socket_message_stream {
 
 datagram_socket_message_stream!(UdpSocketServer, self => UdpSocket::bind(self.address).await?);
 
-datagram_socket_message_stream!(UnixDatagramServer, self => UnixDatagram::bind(&self.path)?);
+datagram_socket_message_stream!(UnixDatagramServer, self => ListenerCleanup::<UnixDatagram>::bind(self.path.clone())?);

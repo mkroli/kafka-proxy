@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+mod cleanup;
 mod datagram;
 mod file;
 mod socket;

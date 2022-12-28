@@ -15,6 +15,7 @@
  */
 
 use crate::cli::{TcpSocketServer, UnixSocketServer};
+use crate::server::stream::cleanup::ListenerCleanup;
 use crate::server::stream::{BytesStream, MessageStream};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -65,6 +66,6 @@ macro_rules! socket_message_stream {
     };
 }
 
-socket_message_stream!(UnixSocketServer, self => UnixListener::bind(&self.file)?);
+socket_message_stream!(UnixSocketServer, self => ListenerCleanup::<UnixListener>::bind(self.file.clone())?);
 
 socket_message_stream!(TcpSocketServer, self => TcpListener::bind(self.address).await?);
