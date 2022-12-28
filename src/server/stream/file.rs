@@ -20,22 +20,33 @@ use anyhow::Result;
 use async_trait::async_trait;
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio_stream::wrappers::LinesStream;
-use tokio_stream::StreamExt;
+use tokio::sync::broadcast::Receiver;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::ReceiverStream;
 
 macro_rules! buf_reader_message_stream {
     ($tp:ty, $self:ident => $reader:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
-            async fn stream(&$self) -> Result<BytesStream> {
+            async fn stream(&$self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
                 let reader = BufReader::new($reader);
-                let stream = LinesStream::new(reader.lines());
-                let stream = stream.map(|s| {
-                    s
-                        .map(|s| s.into())
-                        .map_err(|e| e.into())
+                let mut lines = reader.lines();
+                let (snd, rcv) = mpsc::channel(1);
+                tokio::spawn(async move {
+                    loop {
+                        tokio::select! {
+                            _ = shutdown_trigger_receiver.recv() => break,
+                            line = lines.next_line() => match line {
+                                Ok(Some(l)) => match snd.send(Ok(l.into())).await {
+                                    Ok(()) => (),
+                                    Err(_) => break,
+                                },
+                                _ => break,
+                            }
+                        };
+                    }
                 });
-                Ok(Box::new(stream))
+                Ok(Box::new(ReceiverStream::new(rcv)))
             }
         }
     };

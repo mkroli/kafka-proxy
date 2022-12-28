@@ -21,6 +21,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use tokio::net::UdpSocket;
 use tokio::net::UnixDatagram;
+use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 
@@ -28,13 +29,17 @@ macro_rules! datagram_socket_message_stream {
     ($tp:ty, $self:ident => $socket:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
-            async fn stream(&$self) -> Result<BytesStream> {
+            async fn stream(&$self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
                 let socket = $socket;
                 let mut buf = [0; 8192];
                 let (snd, rcv) = mpsc::channel(1);
                 tokio::spawn(async move {
                     loop {
-                        let msg = match socket.recv(&mut buf).await {
+                        let len = tokio::select! {
+                            _ = shutdown_trigger_receiver.recv() => break,
+                            len = socket.recv(&mut buf) => len,
+                        };
+                        let msg = match len {
                             Ok(len) => Ok(buf[..len].into()),
                             Err(e) => Err(e.into()),
                         };

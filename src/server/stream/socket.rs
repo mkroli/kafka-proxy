@@ -20,6 +20,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use tokio::io::{AsyncBufReadExt, BufStream};
 use tokio::net::{TcpListener, UnixListener};
+use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 
@@ -27,19 +28,33 @@ macro_rules! socket_message_stream {
     ($tp:ty, $self:ident => $listener:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
-            async fn stream(&$self) -> Result<BytesStream> {
+            async fn stream(&$self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
                 let listener = $listener;
                 let (snd, rcv) = mpsc::channel(1);
                 tokio::spawn(async move {
-                    while let Ok((stream, _)) = listener.accept().await {
+                    loop {
+                        let mut shutdown_trigger_receiver_inner = shutdown_trigger_receiver.resubscribe();
+                        let stream = tokio::select! {
+                            _ = shutdown_trigger_receiver.recv() => break,
+                            res = listener.accept() => match res {
+                                Ok((stream, _)) => stream,
+                                Err(_) => break,
+                            },
+                        };
                         let snd = snd.clone();
                         tokio::spawn(async move {
                             let mut lines = BufStream::new(stream).lines();
-                            while let Ok(Some(l)) = lines.next_line().await {
-                                match snd.send(Ok(l.into())).await {
-                                    Ok(()) => (),
-                                    Err(_) => break,
-                                }
+                            loop {
+                                tokio::select! {
+                                    _ = shutdown_trigger_receiver_inner.recv() => break,
+                                    line = lines.next_line() => match line {
+                                        Ok(Some(l)) => match snd.send(Ok(l.into())).await {
+                                            Ok(()) => (),
+                                            Err(_) => break,
+                                        },
+                                        _ => break,
+                                    },
+                                };
                             }
                         });
                     }

@@ -31,7 +31,7 @@ type BytesStream = Box<dyn Stream<Item = Result<Vec<u8>>> + Send + Unpin>;
 
 #[async_trait]
 trait MessageStream {
-    async fn stream(&self) -> Result<BytesStream>;
+    async fn stream(&self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream>;
 }
 
 #[async_trait]
@@ -45,12 +45,12 @@ where
         mut shutdown_trigger_receiver: Receiver<()>,
         _shutdown_sender: Sender<()>,
     ) -> Result<()> {
+        let stream = self.stream(shutdown_trigger_receiver.resubscribe());
         let messages = tokio::select! {
             _ = shutdown_trigger_receiver.recv() => return Ok(()),
-            messages = self.stream() => messages?,
+            messages = stream => messages?,
         };
         messages
-            .take_until(shutdown_trigger_receiver.recv())
             .for_each_concurrent(8192, |msg| async {
                 match msg {
                     Err(e) => log::error!("{}", e),

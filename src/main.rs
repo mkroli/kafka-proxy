@@ -78,17 +78,11 @@ async fn run() -> Result<()> {
     let metrics = Metrics::new();
     let meter = metrics.meter_provider()?;
     let prometheus = if let Some(addr) = cli.prometheus_address {
-        let prometheus = metrics.run(
-            addr,
-            shutdown_trigger_send.subscribe(),
-            shutdown_send.clone(),
-        );
+        let prometheus = metrics.run(addr, shutdown_trigger_send.subscribe());
         tokio::spawn(prometheus)
     } else {
-        let s = shutdown_send.clone();
         let mut r = shutdown_trigger_send.subscribe();
         tokio::spawn(async move {
-            let _ = s;
             r.recv().await?;
             Ok(())
         })
@@ -117,12 +111,12 @@ async fn run() -> Result<()> {
     });
 
     tokio::select! {
-        _ = server => (),
+        _ = shutdown_recv.recv() => (),
         _ = prometheus => (),
         _ = shutdown_signal() => (),
     }
     shutdown_trigger_send.send(())?;
-    shutdown_recv.recv().await;
+    server.await?;
     Ok(())
 }
 

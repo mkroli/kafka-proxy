@@ -32,7 +32,6 @@ use prometheus::{Encoder, TextEncoder};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::broadcast::Receiver;
-use tokio::sync::mpsc::Sender;
 
 pub struct Metrics {
     exporter: PrometheusExporter,
@@ -81,7 +80,6 @@ impl Metrics {
         self,
         bind_address: SocketAddr,
         mut shutdown_trigger_receiver: Receiver<()>,
-        _shutdown_sender: Sender<()>,
     ) -> Result<()> {
         let app = Router::new()
             .route("/metrics", get(Metrics::metrics_handler))
