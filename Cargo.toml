@@ -36,6 +36,9 @@ prometheus = "0.13"
 opentelemetry-prometheus = "0.11"
 posixmq = { version = "1", optional = true }
 
+[dev-dependencies]
+reqwest = "0.11"
+
 [features]
 default = ["coap", "posixmq"]
 coap = ["dep:coap", "dep:coap-lite"]
