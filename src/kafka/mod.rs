@@ -14,24 +14,6 @@
  * limitations under the License.
  */
 
-use anyhow::Result;
-use async_trait::async_trait;
-use tokio::sync::broadcast::Receiver;
-use tokio::sync::mpsc::Sender;
+mod producer;
 
-use crate::kafka::KafkaProducer;
-
-#[cfg(feature = "coap")]
-mod coap;
-mod rest;
-mod stream;
-
-#[async_trait]
-pub trait Server {
-    async fn run(
-        &self,
-        kafka_producer: KafkaProducer,
-        shutdown_trigger_receiver: Receiver<()>,
-        _shutdown_sender: Sender<()>,
-    ) -> Result<()>;
-}
+pub use producer::KafkaProducer;

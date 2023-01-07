@@ -28,7 +28,7 @@ use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc::Sender;
 
 use crate::cli::RestServer;
-use crate::kafka_producer::KafkaProducer;
+use crate::kafka::KafkaProducer;
 use crate::Server;
 
 async fn produce(kafka_producer: Arc<KafkaProducer>, payload: Body) -> Result<()> {

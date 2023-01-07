@@ -21,7 +21,7 @@ mod file;
 mod posixmq;
 mod socket;
 
-use crate::kafka_producer::KafkaProducer;
+use crate::kafka::KafkaProducer;
 use crate::server::Server;
 use anyhow::Result;
 use async_trait::async_trait;

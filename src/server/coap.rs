@@ -15,7 +15,7 @@
  */
 
 use crate::cli::CoapServer;
-use crate::kafka_producer::KafkaProducer;
+use crate::kafka::KafkaProducer;
 use crate::server::Server;
 use async_trait::async_trait;
 use coap_lite::{RequestType, ResponseType};

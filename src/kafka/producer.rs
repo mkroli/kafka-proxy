@@ -50,6 +50,7 @@ struct SchemaRegistry {
 impl KafkaProducer {
     pub async fn new(cfg: Producer, meter: Meter) -> Result<KafkaProducer> {
         let producer: FutureProducer = ClientConfig::new()
+            .set("client.id", "kafka-proxy")
             .set("bootstrap.servers", cfg.bootstrap_server)
             .create()?;
 

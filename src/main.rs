@@ -15,12 +15,12 @@
  */
 
 mod cli;
-mod kafka_producer;
+mod kafka;
 mod metrics;
 mod server;
 
 use crate::cli::{Cli, ServerCommand};
-use crate::kafka_producer::KafkaProducer;
+use crate::kafka::KafkaProducer;
 use crate::metrics::Metrics;
 use crate::server::Server;
 use anyhow::Result;
