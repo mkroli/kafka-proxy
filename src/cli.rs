@@ -54,10 +54,14 @@ pub enum ServerCommand {
     UdpSocket(UdpSocketServer),
     #[command(name = "tcp")]
     TcpSocket(TcpSocketServer),
+    #[cfg(feature = "coap")]
     #[command(name = "coap")]
     Coap(CoapServer),
     #[command(name = "rest")]
     Rest(RestServer),
+    #[cfg(feature = "posixmq")]
+    #[command(name = "posixmq")]
+    PosixMQ(PosixMQServer),
 }
 
 #[derive(Args)]
@@ -102,4 +106,12 @@ pub struct TcpSocketServer {
 pub struct UdpSocketServer {
     #[arg()]
     pub address: SocketAddr,
+}
+
+#[derive(Args)]
+pub struct PosixMQServer {
+    #[arg(short, long, default_value_t = 10)]
+    pub capacity: usize,
+    #[arg()]
+    pub name: String,
 }

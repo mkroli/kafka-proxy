@@ -29,8 +29,14 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "syn
 tokio-stream = { version = "0.1", features = ["sync", "io-util"] }
 hyper = "0.14"
 axum = { version = "0.6", features = ["headers", "http1", "http2"] }
-coap = "0.12"
-coap-lite = "0.9"
+coap = { version = "0.12", optional = true }
+coap-lite = { version = "0.9", optional = true }
 opentelemetry = "0.18"
 prometheus = "0.13"
 opentelemetry-prometheus = "0.11"
+posixmq = { version = "1", optional = true }
+
+[features]
+default = ["coap", "posixmq"]
+coap = ["dep:coap", "dep:coap-lite"]
+posixmq = ["dep:posixmq"]

@@ -17,6 +17,8 @@
 mod cleanup;
 mod datagram;
 mod file;
+#[cfg(feature = "posixmq")]
+mod posixmq;
 mod socket;
 
 use crate::kafka_producer::KafkaProducer;

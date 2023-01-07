@@ -21,6 +21,7 @@ use tokio::sync::mpsc::Sender;
 
 use crate::kafka_producer::KafkaProducer;
 
+#[cfg(feature = "coap")]
 mod coap;
 mod rest;
 mod stream;
