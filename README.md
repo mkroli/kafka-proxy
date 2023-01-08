@@ -16,6 +16,8 @@ cargo install --git https://github.com/mkroli/kafka-proxy
 
 ## Usage
 ```
+Service to proxy from various protocols to Kafka
+
 Usage: kafka-proxy [OPTIONS] --topic <TOPIC> <COMMAND>
 
 Commands:
@@ -27,6 +29,7 @@ Commands:
   tcp         
   coap        
   rest        
+  posixmq     
   help        Print this message or the help of the given subcommand(s)
 
 Options:
@@ -34,8 +37,14 @@ Options:
   -V, --version  Print version information
 
 Kafka Options:
-  -b, --bootstrap-server <ADDRESS_LIST>            [default: 127.0.0.1:9092]
-  -t, --topic <TOPIC>                              
-      --schema-registry-url <SCHEMA_REGISTRY_URL>  
+  -b, --bootstrap-server <ADDRESS_LIST>
+          [env: KAFKA_PROXY_BOOTSTRAP_SERVER=] [default: 127.0.0.1:9092]
+  -t, --topic <TOPIC>
+          [env: KAFKA_PROXY_TOPIC=]
+      --schema-registry-url <SCHEMA_REGISTRY_URL>
+          [env: KAFKA_PROXY_SCHEMA_REGISTRY_URL=]
+      --producer-config <KEY=VALUE>
+          [env: KAFKA_PROXY_PRODUCER_<KEY>=]
       --prometheus <ADDRESS>
+          [env: KAFKA_PROXY_PROMETHEUS_ADDRESS=]
 ```
