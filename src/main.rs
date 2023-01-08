@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-mod cli;
-mod kafka;
-mod metrics;
-mod server;
+use std::process::exit;
+
+use anyhow::Result;
+use clap::Parser;
+use log::SetLoggerError;
 
 use crate::cli::{Cli, ServerCommand};
 use crate::kafka::KafkaProducer;
 use crate::metrics::Metrics;
 use crate::server::Server;
-use anyhow::Result;
-use clap::Parser;
-use log::SetLoggerError;
-use std::process::exit;
+
+mod cli;
+mod kafka;
+mod metrics;
+mod server;
 
 fn configure_logging() -> std::result::Result<(), SetLoggerError> {
     fern::Dispatch::new()
