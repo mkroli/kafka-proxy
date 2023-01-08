@@ -16,8 +16,7 @@
 
 use std::time::Duration;
 
-use anyhow::{bail, Result};
-use apache_avro::types::Value;
+use anyhow::Result;
 use opentelemetry::metrics::{Counter, Meter};
 use opentelemetry::KeyValue;
 use rdkafka::message::ToBytes;
@@ -28,6 +27,7 @@ use schema_registry_converter::async_impl::schema_registry::SrSettings;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 
 use crate::cli::Producer;
+use crate::kafka::schema_registry::SchemaRegistry;
 use crate::kv;
 use crate::metrics::counter_inc;
 
@@ -39,11 +39,6 @@ pub struct KafkaProducer {
     schema_registry: Option<SchemaRegistry>,
     producer_requests_counter: Counter<u64>,
     producer_sent_counter: Counter<u64>,
-}
-
-struct SchemaRegistry {
-    subject_name_strategy: SubjectNameStrategy,
-    encoder: AvroEncoder<'static>,
 }
 
 impl KafkaProducer {
@@ -62,10 +57,7 @@ impl KafkaProducer {
                 let sr_settings = SrSettings::new(String::from(url));
                 let encoder = AvroEncoder::new(sr_settings);
 
-                Some(SchemaRegistry {
-                    subject_name_strategy,
-                    encoder,
-                })
+                Some(SchemaRegistry::new(subject_name_strategy, encoder))
             }
         };
 
@@ -90,25 +82,7 @@ impl KafkaProducer {
     async fn encode(&self, payload: &[u8]) -> Result<Vec<u8>> {
         match &self.schema_registry {
             None => Ok(Vec::from(payload)),
-            Some(schema_registry) => {
-                let json: serde_json::Value = serde_json::from_slice(payload)?;
-                let value: Value = json.into();
-                let fields = match value {
-                    Value::Map(ref m) => {
-                        let mut fields: Vec<(&str, Value)> = Vec::with_capacity(m.len());
-                        for (k, v) in m {
-                            fields.push((k, v.clone()));
-                        }
-                        fields
-                    }
-                    _ => bail!("Only objects are supported"),
-                };
-                let encoded = schema_registry
-                    .encoder
-                    .encode(fields, schema_registry.subject_name_strategy.clone())
-                    .await?;
-                Ok(encoded)
-            }
+            Some(schema_registry) => schema_registry.encode(payload).await,
         }
     }
 

@@ -15,5 +15,6 @@
  */
 
 mod producer;
+mod schema_registry;
 
 pub use producer::KafkaProducer;
