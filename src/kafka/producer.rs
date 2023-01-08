@@ -23,7 +23,6 @@ use opentelemetry::KeyValue;
 use rdkafka::message::ToBytes;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
-use rdkafka::ClientConfig;
 use schema_registry_converter::async_impl::avro::AvroEncoder;
 use schema_registry_converter::async_impl::schema_registry::SrSettings;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
@@ -49,10 +48,11 @@ struct SchemaRegistry {
 
 impl KafkaProducer {
     pub async fn new(cfg: Producer, meter: Meter) -> Result<KafkaProducer> {
-        let producer: FutureProducer = ClientConfig::new()
-            .set("client.id", "kafka-proxy")
-            .set("bootstrap.servers", cfg.bootstrap_server)
-            .create()?;
+        let client_config = cfg.client_config(vec![
+            ("client.id", "kafka-proxy"),
+            ("bootstrap.servers", &cfg.bootstrap_server),
+        ]);
+        let producer: FutureProducer = client_config.create()?;
 
         let schema_registry = match cfg.schema_registry_url {
             None => None,
