@@ -33,4 +33,4 @@ jobs:
       - name: Cross Installation
         run: cargo install cross
       - name: Build
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cross build --release --locked --target ${{ matrix.target }}
