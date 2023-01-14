@@ -1,0 +1,35 @@
+name: GH Release
+
+on:
+  push:
+    tags: '*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+#          - aarch64-unknown-linux-gnu
+#          - aarch64-unknown-linux-musl
+#          - armv7-unknown-linux-gnueabihf
+#          - armv7-unknown-linux-musleabihf
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libsasl2-dev libzstd-dev
+      - name: Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Cross Installation
+        run: cargo install cross
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }}
