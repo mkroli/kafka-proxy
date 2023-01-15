@@ -4,6 +4,9 @@
 
 ## Installation
 
+### Download Binaries
+[Latest Release](https://github.com/mkroli/kafka-proxy/releases/latest)
+
 ### Using Docker
 ```bash
 docker run --rm -it ghcr.io/mkroli/kafka-proxy --help
