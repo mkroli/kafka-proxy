@@ -53,9 +53,9 @@ pub struct UnixDatagramServer {
 #[derive(Debug, Args)]
 pub struct RestServer {
     #[arg(
-    short,
-    long,
-    default_value_t = SocketAddr::new(V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+        short,
+        long,
+        default_value_t = SocketAddr::new(V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
     )]
     pub address: SocketAddr,
 }
@@ -63,9 +63,9 @@ pub struct RestServer {
 #[derive(Debug, Args)]
 pub struct CoapServer {
     #[arg(
-    short,
-    long,
-    default_value_t = SocketAddr::new(V4(Ipv4Addr::new(127, 0, 0, 1)), 5683)
+        short,
+        long,
+        default_value_t = SocketAddr::new(V4(Ipv4Addr::new(127, 0, 0, 1)), 5683)
     )]
     pub address: SocketAddr,
 }
