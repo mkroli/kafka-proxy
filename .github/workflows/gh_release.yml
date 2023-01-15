@@ -14,9 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-unknown-linux-musl
+        include:
+          - target: x86_64-unknown-linux-gnu
+            suffix: x86_64-linux-gnu
+            cargo: cargo
+          - target: x86_64-unknown-linux-musl
+            suffix: x86_64-linux-musl
+            cargo: cross
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -27,5 +31,12 @@ jobs:
           target: ${{ matrix.target }}
       - name: Cross Installation
         run: cargo install cross
+        if: ${{ matrix.cargo == 'cross' }}
       - name: Build
-        run: cross build --release --locked --target ${{ matrix.target }}
+        run: |
+          ${{ matrix.cargo }} build --release --locked --target ${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/kafka-proxy kafka-proxy_${{ matrix.suffix }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: kafka-proxy_${{ matrix.suffix }}
