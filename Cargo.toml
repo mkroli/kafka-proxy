@@ -9,10 +9,16 @@ readme = "README.md"
 authors = ["Michael Krolikowski"]
 
 [package.metadata.cross.build]
-pre-build = [
-    "apt-get update",
-    "DEBIAN_FRONTEND=noninteractive apt-get install -qq cmake libsasl2-dev libzstd-dev"
+env.passthrough = [
+    "krb5_cv_attr_constructor_destructor=yes",
+    "ac_cv_func_regcomp=yes",
+    "ac_cv_printf_positional=yes",
+    "ac_cv_gssapi_supports_spnego=yes",
 ]
+xargo = false
+
+[package.metadata.cross.target.x86_64-unknown-linux-musl]
+image = "messense/rust-musl-cross:x86_64-musl"
 
 [profile.release]
 strip = "symbols"
@@ -29,7 +35,6 @@ chrono = "0.4"
 clap = { version = "4", features = ["derive", "env"] }
 serde_json = "1"
 apache-avro = "0.14"
-# openssl = { version = "0.10", features = ["vendored"] }
 schema_registry_converter = { version = "3.1", features = ["avro"] }
 rdkafka = { version = "0.29", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
 async-trait = "0.1"
@@ -44,6 +49,9 @@ opentelemetry = "0.18"
 prometheus = "0.13"
 opentelemetry-prometheus = "0.11"
 posixmq = { version = "1", optional = true }
+
+[build-dependencies]
+openssl-src = { version = "111", features = ["force-engine"] }
 
 [dev-dependencies]
 reqwest = "0.11"
