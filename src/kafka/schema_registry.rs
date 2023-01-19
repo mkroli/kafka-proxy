@@ -16,38 +16,50 @@
 
 use anyhow::{bail, Result};
 use apache_avro::types::Value;
+use apache_avro::Schema;
 use schema_registry_converter::async_impl::avro::AvroEncoder;
+use schema_registry_converter::async_impl::schema_registry;
+use schema_registry_converter::async_impl::schema_registry::SrSettings;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 
 pub struct SchemaRegistry {
     subject_name_strategy: SubjectNameStrategy,
     encoder: AvroEncoder<'static>,
+    schema: Schema,
 }
 
 impl SchemaRegistry {
-    pub fn new(
-        subject_name_strategy: SubjectNameStrategy,
-        encoder: AvroEncoder<'static>,
-    ) -> SchemaRegistry {
-        SchemaRegistry {
+    pub async fn new(schema_registry_url: String, topic_name: String) -> Result<SchemaRegistry> {
+        let sr_settings = SrSettings::new(schema_registry_url);
+        let encoder = AvroEncoder::new(sr_settings.clone());
+        let subject_name_strategy = SubjectNameStrategy::TopicNameStrategy(topic_name, false);
+        let schema =
+            schema_registry::get_schema_by_subject(&sr_settings, &subject_name_strategy).await?;
+        let schema = Schema::parse_str(&schema.schema)?;
+
+        Ok(SchemaRegistry {
             subject_name_strategy,
             encoder,
-        }
+            schema,
+        })
     }
 
     pub async fn encode(&self, payload: &[u8]) -> Result<Vec<u8>> {
         let json: serde_json::Value = serde_json::from_slice(payload)?;
         let value: Value = json.into();
+        let value = value.resolve(&self.schema)?;
+
         let fields = match value {
-            Value::Map(ref m) => {
+            Value::Record(ref m) => {
                 let mut fields: Vec<(&str, Value)> = Vec::with_capacity(m.len());
                 for (k, v) in m {
                     fields.push((k, v.clone()));
                 }
                 fields
             }
-            _ => bail!("Only objects are supported"),
+            _ => bail!("Only records are supported"),
         };
+
         let encoded = self
             .encoder
             .encode(fields, self.subject_name_strategy.clone())

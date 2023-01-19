@@ -22,9 +22,6 @@ use opentelemetry::KeyValue;
 use rdkafka::message::ToBytes;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
-use schema_registry_converter::async_impl::avro::AvroEncoder;
-use schema_registry_converter::async_impl::schema_registry::SrSettings;
-use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 
 use crate::cli::Producer;
 use crate::kafka::schema_registry::SchemaRegistry;
@@ -51,14 +48,7 @@ impl KafkaProducer {
 
         let schema_registry = match cfg.schema_registry_url {
             None => None,
-            Some(ref url) => {
-                let subject_name_strategy =
-                    SubjectNameStrategy::TopicNameStrategy(cfg.topic.clone(), false);
-                let sr_settings = SrSettings::new(String::from(url));
-                let encoder = AvroEncoder::new(sr_settings);
-
-                Some(SchemaRegistry::new(subject_name_strategy, encoder))
-            }
+            Some(url) => Some(SchemaRegistry::new(url, cfg.topic.clone()).await?),
         };
 
         let producer_requests_counter = meter
