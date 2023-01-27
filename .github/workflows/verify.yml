@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -29,10 +29,10 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    - name: Build
+    - name: Test
       uses: actions-rs/cargo@v1
       with:
-        command: build
+        command: test
         args: --locked --all-features
     - name: Format
       uses: actions-rs/cargo@v1
