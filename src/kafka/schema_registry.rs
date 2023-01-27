@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use crate::kafka::serde::Deserializer;
 use anyhow::{bail, Result};
 use apache_avro::types::Value;
 use apache_avro::Schema;
@@ -25,7 +26,7 @@ use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 pub struct SchemaRegistry {
     subject_name_strategy: SubjectNameStrategy,
     encoder: AvroEncoder<'static>,
-    schema: Schema,
+    deserializer: Deserializer,
 }
 
 impl SchemaRegistry {
@@ -36,18 +37,18 @@ impl SchemaRegistry {
         let schema =
             schema_registry::get_schema_by_subject(&sr_settings, &subject_name_strategy).await?;
         let schema = Schema::parse_str(&schema.schema)?;
+        let deserializer = Deserializer::new(schema);
 
         Ok(SchemaRegistry {
             subject_name_strategy,
             encoder,
-            schema,
+            deserializer,
         })
     }
 
     pub async fn encode(&self, payload: &[u8]) -> Result<Vec<u8>> {
-        let json: serde_json::Value = serde_json::from_slice(payload)?;
-        let value: Value = json.into();
-        let value = value.resolve(&self.schema)?;
+        let json = serde_json::from_slice(payload)?;
+        let value = self.deserializer.deserialize_json(json)?;
 
         let fields = match value {
             Value::Record(ref m) => {

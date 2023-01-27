@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Michael Krolikowski
+ * Copyright 2023 Michael Krolikowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,24 @@
  * limitations under the License.
  */
 
-mod producer;
-mod schema_registry;
-mod serde;
+use anyhow::bail;
+use anyhow::Result;
+use apache_avro::types::Value;
 
-pub use producer::KafkaProducer;
+pub fn deserialize(json: serde_json::Value) -> Result<Value> {
+    match json {
+        serde_json::Value::Null => Ok(Value::Null),
+        v => bail!("Types don't match: Null, {v}"),
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::kafka::serde::tests::test;
+    use apache_avro::types::Value;
+
+    #[test]
+    fn test_null() {
+        assert_eq!(test("\"null\"", "null").unwrap(), Value::Null);
+    }
+}
