@@ -15,6 +15,7 @@
  */
 
 use std::env;
+use std::path::PathBuf;
 
 use anyhow::{Error, Result};
 use clap::Args;
@@ -23,11 +24,11 @@ use rdkafka::ClientConfig;
 #[derive(Debug, Args)]
 pub struct Producer {
     #[arg(
-    short,
-    long,
-    env = "KAFKA_PROXY_BOOTSTRAP_SERVER",
-    value_name = "ADDRESS_LIST",
-    default_value_t = String::from("127.0.0.1:9092")
+        short,
+        long,
+        env = "KAFKA_PROXY_BOOTSTRAP_SERVER",
+        value_name = "ADDRESS_LIST",
+        default_value_t = String::from("127.0.0.1:9092"),
     )]
     pub bootstrap_server: String,
     #[arg(short, long, env = "KAFKA_PROXY_TOPIC")]
@@ -35,13 +36,20 @@ pub struct Producer {
     #[arg(long, env = "KAFKA_PROXY_SCHEMA_REGISTRY_URL")]
     pub schema_registry_url: Option<String>,
     #[arg(
-    long,
-    required = false,
-    value_name = "KEY=VALUE",
-    help = "[env: KAFKA_PROXY_PRODUCER_<KEY>=]",
-    value_parser = Producer::parse_tuple
+        long,
+        required = false,
+        value_name = "KEY=VALUE",
+        help = "[env: KAFKA_PROXY_PRODUCER_<KEY>=]",
+        value_parser = Producer::parse_tuple,
     )]
     pub producer_config: Vec<(String, String)>,
+    #[arg(
+        long,
+        required = false,
+        env = "KAFKA_PROXY_DEAD_LETTERS",
+        value_name = "FILENAME"
+    )]
+    pub dead_letters: Option<PathBuf>,
 }
 
 impl Producer {

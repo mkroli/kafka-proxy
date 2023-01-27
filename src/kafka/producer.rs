@@ -17,11 +17,16 @@
 use std::time::Duration;
 
 use anyhow::Result;
+use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
+use base64::{alphabet, Engine};
 use opentelemetry::metrics::{Counter, Meter};
 use opentelemetry::KeyValue;
 use rdkafka::message::ToBytes;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
+use tokio::fs::{File, OpenOptions};
+use tokio::io::AsyncWriteExt;
+use tokio::sync::Mutex;
 
 use crate::cli::Producer;
 use crate::kafka::schema_registry::SchemaRegistry;
@@ -30,10 +35,14 @@ use crate::metrics::counter_inc;
 
 const TIMEOUT: Timeout = Timeout::After(Duration::from_millis(3000));
 
+const ENGINE: GeneralPurpose =
+    GeneralPurpose::new(&alphabet::STANDARD, GeneralPurposeConfig::new());
+
 pub struct KafkaProducer {
     topic: String,
     producer: FutureProducer,
     schema_registry: Option<SchemaRegistry>,
+    dead_letters: Option<Mutex<File>>,
     producer_requests_counter: Counter<u64>,
     producer_sent_counter: Counter<u64>,
 }
@@ -51,6 +60,18 @@ impl KafkaProducer {
             Some(url) => Some(SchemaRegistry::new(url, cfg.topic.clone()).await?),
         };
 
+        let dead_letters = match cfg.dead_letters {
+            None => None,
+            Some(path) => {
+                let file = OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(path)
+                    .await?;
+                Some(Mutex::new(file))
+            }
+        };
+
         let producer_requests_counter = meter
             .u64_counter("producer.requests")
             .with_description("Number of requests")
@@ -64,6 +85,7 @@ impl KafkaProducer {
             topic: cfg.topic,
             producer,
             schema_registry,
+            dead_letters,
             producer_requests_counter,
             producer_sent_counter,
         })
@@ -89,6 +111,16 @@ impl KafkaProducer {
         Ok(())
     }
 
+    async fn dead_letter(&self, payload: &[u8]) -> Result<()> {
+        if let Some(file) = &self.dead_letters {
+            let mut str = ENGINE.encode(payload);
+            str.push('\n');
+            let mut file = file.lock().await;
+            file.write_all(str.as_bytes()).await?;
+        };
+        Ok(())
+    }
+
     pub async fn send<K>(&self, key: &K, payload: &[u8]) -> Result<()>
     where
         K: ToBytes + ?Sized,
@@ -101,6 +133,7 @@ impl KafkaProducer {
             }
             Err(e) => {
                 counter_inc(&self.producer_requests_counter, kv!["success" => false]);
+                self.dead_letter(payload).await?;
                 Err(e)
             }
         }
