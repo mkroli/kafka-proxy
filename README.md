@@ -1,6 +1,6 @@
 # kafka-proxy
 
-[![Build](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml/badge.svg)](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml)
+[![Verify](https://github.com/mkroli/kafka-proxy/actions/workflows/verify.yml/badge.svg)](https://github.com/mkroli/kafka-proxy/actions/workflows/verify.yml)
 
 ## Installation
 
@@ -36,8 +36,8 @@ Commands:
   help        Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help     Print help information
-  -V, --version  Print version information
+  -h, --help     Print help
+  -V, --version  Print version
 
 Kafka Options:
   -b, --bootstrap-server <ADDRESS_LIST>
@@ -48,6 +48,8 @@ Kafka Options:
           [env: KAFKA_PROXY_SCHEMA_REGISTRY_URL=]
       --producer-config <KEY=VALUE>
           [env: KAFKA_PROXY_PRODUCER_<KEY>=]
+      --dead-letters <FILENAME>
+          [env: KAFKA_PROXY_DEAD_LETTERS=]
       --prometheus <ADDRESS>
           [env: KAFKA_PROXY_PROMETHEUS_ADDRESS=]
 ```
