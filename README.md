@@ -1,6 +1,6 @@
 # kafka-proxy
 
-[![Verify](https://github.com/mkroli/kafka-proxy/actions/workflows/verify.yml/badge.svg)](https://github.com/mkroli/kafka-proxy/actions/workflows/verify.yml)
+[![Build](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml/badge.svg)](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml)
 
 ## Installation
 
