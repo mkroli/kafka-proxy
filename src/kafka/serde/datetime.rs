@@ -17,8 +17,10 @@
 use anyhow::Result;
 use anyhow::{bail, Context};
 use apache_avro::types::Value;
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveTime};
-use rust_decimal::prelude::ToPrimitive;
+use num_traits::ToPrimitive;
+use std::str::FromStr;
 
 fn deserialize_datetime(str: &str) -> Result<DateTime<FixedOffset>> {
     let date_time = str.parse::<DateTime<FixedOffset>>()?;
@@ -35,7 +37,7 @@ pub fn deserialize_date(json: serde_json::Value) -> Result<Value> {
             Ok(Value::Date(duration.num_days() as i32))
         }
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let date = dec
                 .to_i32()
                 .with_context(|| format!("{dec} cannot be represented as i32"))?;
@@ -53,7 +55,7 @@ pub fn deserialize_time_millis(json: serde_json::Value) -> Result<Value> {
             Ok(Value::TimeMillis(duration.num_milliseconds() as i32))
         }
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let time = dec
                 .to_i32()
                 .with_context(|| format!("{dec} cannot be represented as i32"))?;
@@ -74,7 +76,7 @@ pub fn deserialize_time_micros(json: serde_json::Value) -> Result<Value> {
             Ok(Value::TimeMicros(micros))
         }
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let time = dec
                 .to_i64()
                 .with_context(|| format!("{dec} cannot be represented as i64"))?;
@@ -91,7 +93,7 @@ pub fn deserialize_timestamp_millis(json: serde_json::Value) -> Result<Value> {
             Ok(Value::TimestampMillis(date_time.timestamp_millis()))
         }
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let timestamp = dec
                 .to_i64()
                 .with_context(|| format!("{dec} cannot be represented as i64"))?;
@@ -108,7 +110,7 @@ pub fn deserialize_timestamp_micros(json: serde_json::Value) -> Result<Value> {
             Ok(Value::TimestampMicros(date_time.timestamp_micros()))
         }
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let timestamp = dec
                 .to_i64()
                 .with_context(|| format!("{dec} cannot be represented as i64"))?;

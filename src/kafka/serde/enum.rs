@@ -17,7 +17,9 @@
 use anyhow::Result;
 use anyhow::{bail, Context};
 use apache_avro::types::Value;
-use rust_decimal::prelude::ToPrimitive;
+use bigdecimal::BigDecimal;
+use num_traits::ToPrimitive;
+use std::str::FromStr;
 
 pub fn deserialize(symbols: &Vec<String>, json: serde_json::Value) -> Result<Value> {
     match json {
@@ -29,7 +31,7 @@ pub fn deserialize(symbols: &Vec<String>, json: serde_json::Value) -> Result<Val
             Ok(Value::Enum(idx as u32, str))
         }
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let idx = dec
                 .to_u32()
                 .with_context(|| format!("{dec} cannot be represented as u32"))?;

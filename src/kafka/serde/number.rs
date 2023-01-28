@@ -17,17 +17,17 @@
 use anyhow::Result;
 use anyhow::{bail, Context};
 use apache_avro::types::Value;
-use rust_decimal::prelude::ToPrimitive;
-use rust_decimal::Decimal;
-use std::ops::{AddAssign, DivAssign};
+use bigdecimal::BigDecimal;
+use num_traits::cast::ToPrimitive;
+use std::str::FromStr;
 
 pub fn deserialize_int(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let int = dec
                 .to_i32()
-                .with_context(|| format!("{dec} cannot be represented as i32"))?;
+                .with_context(|| format!("{n} cannot be represented as i32"))?;
             Ok(Value::Int(int))
         }
         v => bail!("Types don't match: Int, {v}"),
@@ -37,10 +37,10 @@ pub fn deserialize_int(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_long(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let long = dec
                 .to_i64()
-                .with_context(|| format!("{dec} cannot be represented as i64"))?;
+                .with_context(|| format!("{n} cannot be represented as i64"))?;
             Ok(Value::Long(long))
         }
         v => bail!("Types don't match: Long, {v}"),
@@ -50,10 +50,10 @@ pub fn deserialize_long(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_float(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let float = dec
                 .to_f32()
-                .with_context(|| format!("{dec} cannot be represented as f32"))?;
+                .with_context(|| format!("{n} cannot be represented as f32"))?;
             Ok(Value::Float(float))
         }
         v => bail!("Types don't match: Float, {v}"),
@@ -63,10 +63,10 @@ pub fn deserialize_float(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_double(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
+            let dec = BigDecimal::from_str(&format!("{n}"))?;
             let double = dec
                 .to_f64()
-                .with_context(|| format!("{dec} cannot be represented as f64"))?;
+                .with_context(|| format!("{n} cannot be represented as f64"))?;
             Ok(Value::Double(double))
         }
         v => bail!("Types don't match: Double, {v}"),
@@ -76,26 +76,9 @@ pub fn deserialize_double(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_decimal(scale: u32, json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let mut dec = rust_decimal::serde::arbitrary_precision::deserialize(n)?;
-            dec.div_assign(Decimal::new(1, scale));
-            if dec.is_sign_negative() {
-                dec.add_assign(Decimal::new(1, 0));
-            }
-            dec.rescale(0);
-            let unpacked = dec.unpack();
-            let mut bytes = Vec::with_capacity(16);
-            bytes.push(0);
-            bytes.push(0);
-            bytes.push(0);
-            bytes.push(0);
-            bytes.append(&mut unpacked.hi.to_be_bytes().to_vec());
-            bytes.append(&mut unpacked.mid.to_be_bytes().to_vec());
-            bytes.append(&mut unpacked.lo.to_be_bytes().to_vec());
-            if unpacked.negative {
-                for item in &mut bytes {
-                    *item = !*item;
-                }
-            }
+            let dec = BigDecimal::from_str(&format!("{n}"))?.with_scale(scale as i64);
+            let (int, _) = dec.into_bigint_and_exponent();
+            let bytes = int.to_signed_bytes_be();
             Ok(Value::Decimal(apache_avro::Decimal::from(bytes)))
         }
         v => bail!("Types don't match: Decimal, {v}"),
@@ -143,10 +126,7 @@ mod test {
                 json!(123.456789),
             )
             .unwrap(),
-            Value::Decimal(Decimal::from(vec!(
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x5B,
-                0xCD, 0x15
-            )))
+            Value::Decimal(Decimal::from(vec!(0x07, 0x5B, 0xCD, 0x15)))
         );
     }
 }

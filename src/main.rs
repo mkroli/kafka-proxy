@@ -69,6 +69,7 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 }
+
 async fn run() -> Result<()> {
     configure_logging()?;
 
