@@ -78,15 +78,17 @@ mod tests {
     use anyhow::Result;
     use apache_avro::types::Value;
     use apache_avro::Schema;
+    use serde_json::json;
 
     use crate::kafka::serde::Deserializer;
 
-    pub fn test(tp: &str, json: &str) -> Result<Value> {
-        let schema = format!("{{\"name\":\"value\",\"type\":{}}}", tp);
-        let schema = Schema::parse_str(&schema)?;
+    pub fn test(tp: &serde_json::Value, json: serde_json::Value) -> Result<Value> {
+        let schema = json!({
+            "name": "value",
+            "type": tp,
+        });
+        let schema = Schema::parse(&schema)?;
         let de = Deserializer::new(schema);
-
-        let json = serde_json::from_str::<serde_json::Value>(json)?;
         let value = de.deserialize_json(json)?;
         Ok(value)
     }

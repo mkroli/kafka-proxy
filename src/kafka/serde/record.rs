@@ -42,20 +42,21 @@ pub fn deserialize(fields: &Vec<RecordField>, json: serde_json::Value) -> Result
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
 
     #[test]
     fn test_record() {
-        let schema = r#"{
-            "type":"record",
-            "name":"record",
-            "fields":[
-                {"name":"a", "type":"int"},
-                {"name":"b", "type":"string"},
-                {"name":"c", "type":"long", "default":1}
+        let schema = json!({
+            "type": "record",
+            "name": "record",
+            "fields": [
+                {"name": "a", "type": "int"},
+                {"name": "b", "type": "string"},
+                {"name": "c", "type": "long", "default": 1}
             ]
-        }"#;
+        });
         assert_eq!(
-            test(schema, r#"{"a":1, "b":"2"}"#,).unwrap(),
+            test(&schema, json!({"a": 1, "b": "2"})).unwrap(),
             Value::Record(vec!(
                 ("a".to_string(), Value::Int(1)),
                 ("b".to_string(), Value::String("2".to_string())),

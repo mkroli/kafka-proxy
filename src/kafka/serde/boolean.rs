@@ -29,9 +29,13 @@ pub fn deserialize(json: serde_json::Value) -> Result<Value> {
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
 
     #[test]
     fn test_boolean() {
-        assert_eq!(test("\"boolean\"", "true").unwrap(), Value::Boolean(true));
+        assert_eq!(
+            test(&json!("boolean"), json!(true)).unwrap(),
+            Value::Boolean(true)
+        );
     }
 }

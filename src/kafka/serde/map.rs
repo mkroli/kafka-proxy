@@ -39,6 +39,7 @@ pub fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
     use std::collections::HashMap;
 
     #[test]
@@ -49,8 +50,8 @@ mod test {
         map.insert("c".to_string(), Value::Int(3));
         assert_eq!(
             test(
-                r#"{"type":"map", "values":"int"}"#,
-                r#"{"a":1, "b":2, "c":3}"#,
+                &json!({"type":"map","values":"int"}),
+                json!({"a":1,"b":2,"c":3}),
             )
             .unwrap(),
             Value::Map(map)

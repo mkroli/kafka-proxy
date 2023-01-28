@@ -959,6 +959,7 @@ dependencies = [
  "fern",
  "futures",
  "hyper",
+ "lazy_static",
  "log",
  "openssl-src",
  "opentelemetry",

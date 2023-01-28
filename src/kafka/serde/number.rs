@@ -107,26 +107,30 @@ mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
     use apache_avro::Decimal;
+    use serde_json::json;
 
     #[test]
     fn test_int() {
-        assert_eq!(test("\"int\"", "123").unwrap(), Value::Int(123));
+        assert_eq!(test(&json!("int"), json!(123)).unwrap(), Value::Int(123));
     }
 
     #[test]
     fn test_long() {
-        assert_eq!(test("\"long\"", "123").unwrap(), Value::Long(123));
+        assert_eq!(test(&json!("long"), json!(123)).unwrap(), Value::Long(123));
     }
 
     #[test]
     fn test_float() {
-        assert_eq!(test("\"float\"", "123.123").unwrap(), Value::Float(123.123));
+        assert_eq!(
+            test(&json!("float"), json!(123.123)).unwrap(),
+            Value::Float(123.123)
+        );
     }
 
     #[test]
     fn test_double() {
         assert_eq!(
-            test("\"double\"", "123.123").unwrap(),
+            test(&json!("double"), json!(123.123)).unwrap(),
             Value::Double(123.123)
         );
     }
@@ -135,8 +139,8 @@ mod test {
     fn test_decimal() {
         assert_eq!(
             test(
-                r#"{"type":"bytes", "logicalType":"decimal", "precision": 9, "scale": 6}"#,
-                "123.456789",
+                &json!({"type": "bytes", "logicalType": "decimal", "precision": 9, "scale": 6}),
+                json!(123.456789),
             )
             .unwrap(),
             Value::Decimal(Decimal::from(vec!(

@@ -37,11 +37,19 @@ pub fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
 
     #[test]
     fn test_array() {
         assert_eq!(
-            test(r#"{"type":"array", "items":"int"}"#, "[1, 2, 3]").unwrap(),
+            test(
+                &json!({
+                    "type": "array",
+                    "items": "int",
+                }),
+                json!([1, 2, 3])
+            )
+            .unwrap(),
             Value::Array(vec!(Value::Int(1), Value::Int(2), Value::Int(3)))
         );
     }

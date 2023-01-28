@@ -46,28 +46,49 @@ pub fn deserialize(symbols: &Vec<String>, json: serde_json::Value) -> Result<Val
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use lazy_static::lazy_static;
+    use serde_json::json;
 
-    const SCHEMA: &str = r#"{"type":"enum", "name": "Test", "symbols":["A", "B", "C"]}"#;
+    lazy_static! {
+        static ref SCHEMA: serde_json::Value = json!({
+            "type": "enum",
+            "name": "Test",
+            "symbols": [
+                "A",
+                "B",
+                "C"
+            ],
+        });
+    }
 
     #[test]
     fn test_enum_index() {
-        assert_eq!(test(SCHEMA, "0").unwrap(), Value::Enum(0, "A".to_string()));
-        assert_eq!(test(SCHEMA, "1").unwrap(), Value::Enum(1, "B".to_string()));
-        assert_eq!(test(SCHEMA, "2").unwrap(), Value::Enum(2, "C".to_string()));
+        assert_eq!(
+            test(&SCHEMA, json!(0)).unwrap(),
+            Value::Enum(0, "A".to_string())
+        );
+        assert_eq!(
+            test(&SCHEMA, json!(1)).unwrap(),
+            Value::Enum(1, "B".to_string())
+        );
+        assert_eq!(
+            test(&SCHEMA, json!(2)).unwrap(),
+            Value::Enum(2, "C".to_string())
+        );
     }
 
     #[test]
     fn test_enum_symbol() {
         assert_eq!(
-            test(SCHEMA, "\"A\"").unwrap(),
+            test(&SCHEMA, json!("A")).unwrap(),
             Value::Enum(0, "A".to_string())
         );
         assert_eq!(
-            test(SCHEMA, "\"B\"").unwrap(),
+            test(&SCHEMA, json!("B")).unwrap(),
             Value::Enum(1, "B".to_string())
         );
         assert_eq!(
-            test(SCHEMA, "\"C\"").unwrap(),
+            test(&SCHEMA, json!("C")).unwrap(),
             Value::Enum(2, "C".to_string())
         );
     }

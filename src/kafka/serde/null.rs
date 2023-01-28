@@ -29,9 +29,10 @@ pub fn deserialize(json: serde_json::Value) -> Result<Value> {
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
 
     #[test]
     fn test_null() {
-        assert_eq!(test("\"null\"", "null").unwrap(), Value::Null);
+        assert_eq!(test(&json!("null"), json!(null)).unwrap(), Value::Null);
     }
 }

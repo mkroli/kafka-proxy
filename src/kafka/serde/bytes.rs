@@ -74,12 +74,13 @@ pub fn deserialize_uuid(json: serde_json::Value) -> Result<Value> {
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
     use uuid::Uuid;
 
     #[test]
     fn test_string() {
         assert_eq!(
-            test("\"string\"", "\"test\"").unwrap(),
+            test(&json!("string"), json!("test")).unwrap(),
             Value::String("test".to_string())
         );
     }
@@ -87,7 +88,7 @@ mod test {
     #[test]
     fn test_bytes() {
         assert_eq!(
-            test(r#"{"type":"bytes"}"#, "\"dGVzdA==\"").unwrap(),
+            test(&json!({"type":"bytes"}), json!("dGVzdA==")).unwrap(),
             Value::Bytes("test".into())
         );
     }
@@ -96,8 +97,8 @@ mod test {
     fn test_fixed() {
         assert_eq!(
             test(
-                r#"{"type":"fixed", "name":"test", "size":4}"#,
-                "\"dGVzdA==\"",
+                &json!({"type":"fixed","name":"test","size":4}),
+                json!("dGVzdA=="),
             )
             .unwrap(),
             Value::Fixed(4, "test".into())
@@ -108,8 +109,8 @@ mod test {
     fn test_uuid() {
         assert_eq!(
             test(
-                r#"{"type":"string", "logicalType":"uuid"}"#,
-                "\"550e8400-e29b-11d4-a716-446655440000\"",
+                &json!({"type":"string","logicalType":"uuid"}),
+                json!("550e8400-e29b-11d4-a716-446655440000"),
             )
             .unwrap(),
             Value::Uuid(Uuid::parse_str("550e8400-e29b-11d4-a716-446655440000").unwrap())

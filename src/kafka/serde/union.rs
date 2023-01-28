@@ -35,20 +35,21 @@ pub fn deserialize(schema: &UnionSchema, json: serde_json::Value) -> Result<Valu
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
 
     #[test]
     fn test_union() {
-        let schema = r#"["null", "int", "string"]"#;
+        let schema = json!(["null", "int", "string"]);
         assert_eq!(
-            test(schema, "null").unwrap(),
+            test(&schema, json!(null)).unwrap(),
             Value::Union(0, Box::new(Value::Null))
         );
         assert_eq!(
-            test(schema, "123").unwrap(),
+            test(&schema, json!(123)).unwrap(),
             Value::Union(1, Box::new(Value::Int(123)))
         );
         assert_eq!(
-            test(schema, "\"test123\"").unwrap(),
+            test(&schema, json!("test123")).unwrap(),
             Value::Union(2, Box::new(Value::String("test123".to_string())))
         );
     }

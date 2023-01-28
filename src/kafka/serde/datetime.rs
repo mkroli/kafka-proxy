@@ -122,13 +122,14 @@ pub fn deserialize_timestamp_micros(json: serde_json::Value) -> Result<Value> {
 mod test {
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use serde_json::json;
 
     #[test]
     fn test_date() {
         assert_eq!(
             test(
-                r#"{"type":"int", "logicalType":"date"}"#,
-                "\"2001-02-03T12:34:56.789Z\"",
+                &json!({"type":"int", "logicalType":"date"}),
+                json!("2001-02-03T12:34:56.789Z"),
             )
             .unwrap(),
             Value::Date(11356)
@@ -139,8 +140,8 @@ mod test {
     fn test_time_millis() {
         assert_eq!(
             test(
-                r#"{"type":"int", "logicalType":"time-millis"}"#,
-                "\"2001-02-03T12:34:56.789Z\"",
+                &json!({"type":"int", "logicalType":"time-millis"}),
+                json!("2001-02-03T12:34:56.789Z"),
             )
             .unwrap(),
             Value::TimeMillis(45296789)
@@ -151,8 +152,8 @@ mod test {
     fn test_time_micros() {
         assert_eq!(
             test(
-                r#"{"type":"long", "logicalType":"time-micros"}"#,
-                "\"2001-02-03T12:34:56.789Z\"",
+                &json!({"type":"long", "logicalType":"time-micros"}),
+                json!("2001-02-03T12:34:56.789Z"),
             )
             .unwrap(),
             Value::TimeMicros(45296789000)
@@ -163,8 +164,8 @@ mod test {
     fn test_timestamp_millis() {
         assert_eq!(
             test(
-                r#"{"type":"long", "logicalType":"timestamp-millis"}"#,
-                "\"2001-02-03T12:34:56.789Z\"",
+                &json!({"type":"long", "logicalType":"timestamp-millis"}),
+                json!("2001-02-03T12:34:56.789Z"),
             )
             .unwrap(),
             Value::TimestampMillis(981203696789)
@@ -175,8 +176,8 @@ mod test {
     fn test_timestamp_micros() {
         assert_eq!(
             test(
-                r#"{"type":"long", "logicalType":"timestamp-micros"}"#,
-                "\"2001-02-03T12:34:56.789Z\"",
+                &json!({"type":"long", "logicalType":"timestamp-micros"}),
+                json!("2001-02-03T12:34:56.789Z"),
             )
             .unwrap(),
             Value::TimestampMicros(981203696789000)

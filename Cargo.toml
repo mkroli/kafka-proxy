@@ -36,6 +36,7 @@ panic = "abort"
 codegen-units = 1
 
 [dependencies]
+lazy_static = "1"
 anyhow = "1"
 log = "0.4"
 fern = "0.6"
