@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
+use anyhow::bail;
 use anyhow::Result;
-use anyhow::{bail, Context};
 use apache_avro::types::Value;
 use bigdecimal::BigDecimal;
-use num_traits::cast::ToPrimitive;
 use std::str::FromStr;
 
 pub fn deserialize_int(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = BigDecimal::from_str(&format!("{n}"))?;
-            let int = dec
-                .to_i32()
-                .with_context(|| format!("{n} cannot be represented as i32"))?;
+            let int = i32::from_str(&format!("{n}"))?;
             Ok(Value::Int(int))
         }
         v => bail!("Types don't match: Int, {v}"),
@@ -37,10 +33,7 @@ pub fn deserialize_int(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_long(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = BigDecimal::from_str(&format!("{n}"))?;
-            let long = dec
-                .to_i64()
-                .with_context(|| format!("{n} cannot be represented as i64"))?;
+            let long = i64::from_str(&format!("{n}"))?;
             Ok(Value::Long(long))
         }
         v => bail!("Types don't match: Long, {v}"),
@@ -50,10 +43,7 @@ pub fn deserialize_long(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_float(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = BigDecimal::from_str(&format!("{n}"))?;
-            let float = dec
-                .to_f32()
-                .with_context(|| format!("{n} cannot be represented as f32"))?;
+            let float = f32::from_str(&format!("{n}"))?;
             Ok(Value::Float(float))
         }
         v => bail!("Types don't match: Float, {v}"),
@@ -63,10 +53,7 @@ pub fn deserialize_float(json: serde_json::Value) -> Result<Value> {
 pub fn deserialize_double(json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Number(n) => {
-            let dec = BigDecimal::from_str(&format!("{n}"))?;
-            let double = dec
-                .to_f64()
-                .with_context(|| format!("{n} cannot be represented as f64"))?;
+            let double = f64::from_str(&format!("{n}"))?;
             Ok(Value::Double(double))
         }
         v => bail!("Types don't match: Double, {v}"),

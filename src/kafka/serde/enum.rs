@@ -17,8 +17,6 @@
 use anyhow::Result;
 use anyhow::{bail, Context};
 use apache_avro::types::Value;
-use bigdecimal::BigDecimal;
-use num_traits::ToPrimitive;
 use std::str::FromStr;
 
 pub fn deserialize(symbols: &Vec<String>, json: serde_json::Value) -> Result<Value> {
@@ -31,10 +29,7 @@ pub fn deserialize(symbols: &Vec<String>, json: serde_json::Value) -> Result<Val
             Ok(Value::Enum(idx as u32, str))
         }
         serde_json::Value::Number(n) => {
-            let dec = BigDecimal::from_str(&format!("{n}"))?;
-            let idx = dec
-                .to_u32()
-                .with_context(|| format!("{dec} cannot be represented as u32"))?;
+            let idx = u32::from_str(&format!("{n}"))?;
             let symbol = symbols
                 .get(idx as usize)
                 .with_context(|| format!("Index {idx} not found in symbols"))?;
