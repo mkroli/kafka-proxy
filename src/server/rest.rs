@@ -33,7 +33,7 @@ use crate::Server;
 
 async fn produce(kafka_producer: Arc<KafkaProducer>, payload: Body) -> Result<()> {
     let payload = hyper::body::to_bytes(payload).await?;
-    kafka_producer.send(&Vec::new(), payload.to_bytes()).await?;
+    kafka_producer.send(payload.to_bytes()).await?;
     Ok(())
 }
 

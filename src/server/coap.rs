@@ -36,7 +36,7 @@ impl Server for CoapServer {
         let run = server.run(|request| async {
             let response_status = match request.get_method() {
                 &RequestType::Post => match request.get_path().as_str() {
-                    "produce" => match kafka_producer.send(&[], &request.message.payload).await {
+                    "produce" => match kafka_producer.send(&request.message.payload).await {
                         Ok(()) => ResponseType::Changed,
                         Err(e) => {
                             log::warn!("{}", e);

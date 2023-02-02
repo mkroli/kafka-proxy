@@ -57,7 +57,7 @@ where
             .for_each_concurrent(8192, |msg| async {
                 match msg {
                     Err(e) => log::error!("{}", e),
-                    Ok(msg) => match kafka_producer.send(&vec![], &msg).await {
+                    Ok(msg) => match kafka_producer.send(&msg).await {
                         Ok(()) => (),
                         Err(e) => log::warn!("{}", e),
                     },

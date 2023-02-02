@@ -21,7 +21,6 @@ use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
 use base64::{alphabet, Engine};
 use opentelemetry::metrics::{Counter, Meter};
 use opentelemetry::KeyValue;
-use rdkafka::message::ToBytes;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
 use tokio::fs::{File, OpenOptions};
@@ -98,12 +97,10 @@ impl KafkaProducer {
         }
     }
 
-    async fn produce<K>(&self, key: &K, payload: &[u8]) -> Result<()>
-    where
-        K: ToBytes + ?Sized,
-    {
+    async fn produce(&self, payload: &[u8]) -> Result<()> {
         let payload = self.encode(payload).await?;
-        let record = FutureRecord::to(&self.topic).key(key).payload(&payload);
+        let record: FutureRecord<Vec<u8>, Vec<u8>> =
+            FutureRecord::to(&self.topic).payload(&payload);
         self.producer
             .send(record, TIMEOUT)
             .await
@@ -121,11 +118,8 @@ impl KafkaProducer {
         Ok(())
     }
 
-    pub async fn send<K>(&self, key: &K, payload: &[u8]) -> Result<()>
-    where
-        K: ToBytes + ?Sized,
-    {
-        match self.produce(key, payload).await {
+    pub async fn send(&self, payload: &[u8]) -> Result<()> {
+        match self.produce(payload).await {
             Ok(()) => {
                 counter_inc(&self.producer_requests_counter, kv!["success" => true]);
                 counter_inc(&self.producer_sent_counter, kv![]);
