@@ -23,25 +23,52 @@ use clap::{Args, Subcommand};
 
 #[derive(Debug, Subcommand)]
 pub enum ServerCommand {
-    #[command(name = "stdin")]
+    #[command(
+        name = "stdin",
+        long_about = "Read one message per line from stdin (supports formats: Text, Avro)."
+    )]
     StdIn(StdInServer),
-    #[command(name = "file")]
+    #[command(
+        name = "file",
+        long_about = "Read one message per line from a file (supports formats: Text, Avro)."
+    )]
     File(FileServer),
-    #[command(name = "unix-dgram")]
+    #[command(
+        name = "unix-dgram",
+        long_about = "Receive messages from a Unix Datagram socket (supports formats: Text, Avro, Binary)."
+    )]
     UnixDatagram(UnixDatagramServer),
-    #[command(name = "unix")]
+    #[command(
+        name = "unix",
+        long_about = "Receive one message per line from a Unix socket (supports formats: Text, Avro)."
+    )]
     UnixSocket(UnixSocketServer),
-    #[command(name = "udp")]
+    #[command(
+        name = "udp",
+        long_about = "Receive messages from a UDP socket (supports formats: Text, Avro, Binary)."
+    )]
     UdpSocket(UdpSocketServer),
-    #[command(name = "tcp")]
+    #[command(
+        name = "tcp",
+        long_about = "Receive one message per line from a TCP socket (supports formats: Text, Avro)."
+    )]
     TcpSocket(TcpSocketServer),
     #[cfg(feature = "coap")]
-    #[command(name = "coap")]
+    #[command(
+        name = "coap",
+        long_about = "Receive messages via CoAP (supports formats: Text, Avro, Binary)."
+    )]
     Coap(CoapServer),
-    #[command(name = "rest")]
+    #[command(
+        name = "rest",
+        long_about = "Receive messages via HTTP (supports formats: Text, Avro, Binary)."
+    )]
     Rest(RestServer),
     #[cfg(feature = "posixmq")]
-    #[command(name = "posixmq")]
+    #[command(
+        name = "posixmq",
+        long_about = "Receive messages via Posix MQ (supports formats: Text, Avro, Binary)."
+    )]
     PosixMQ(PosixMQServer),
 }
 
