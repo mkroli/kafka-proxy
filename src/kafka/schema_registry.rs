@@ -17,32 +17,35 @@
 use crate::kafka::serde::Deserializer;
 use anyhow::{bail, Result};
 use apache_avro::types::Value;
-use apache_avro::Schema;
 use schema_registry_converter::async_impl::avro::AvroEncoder;
-use schema_registry_converter::async_impl::schema_registry;
-use schema_registry_converter::async_impl::schema_registry::SrSettings;
 use schema_registry_converter::schema_registry_common::SubjectNameStrategy;
 
 pub struct SchemaRegistry {
     subject_name_strategy: SubjectNameStrategy,
-    encoder: AvroEncoder<'static>,
     deserializer: Deserializer,
+    encoder: AvroEncoder<'static>,
 }
 
 impl SchemaRegistry {
-    pub async fn new(schema_registry_url: String, topic_name: String) -> Result<SchemaRegistry> {
-        let sr_settings = SrSettings::new(schema_registry_url);
-        let encoder = AvroEncoder::new(sr_settings.clone());
-        let subject_name_strategy = SubjectNameStrategy::TopicNameStrategy(topic_name, false);
-        let schema =
-            schema_registry::get_schema_by_subject(&sr_settings, &subject_name_strategy).await?;
-        let schema = Schema::parse_str(&schema.schema)?;
+    pub async fn new(
+        topic_name: String,
+        schema_registry: &crate::cli::schema_registry::SchemaRegistry,
+    ) -> Result<SchemaRegistry> {
+        let sr_settings = schema_registry.sr_settings()?;
+
+        let schema = schema_registry
+            .schema(&sr_settings, topic_name.clone())
+            .await?;
         let deserializer = Deserializer::new(schema);
+
+        let subject_name_strategy = schema_registry.subject_name_strategy(topic_name);
+
+        let encoder = AvroEncoder::new(sr_settings);
 
         Ok(SchemaRegistry {
             subject_name_strategy,
-            encoder,
             deserializer,
+            encoder,
         })
     }
 

@@ -21,21 +21,20 @@ use clap::{ColorChoice, Parser};
 pub use producer::Producer;
 pub use server::*;
 
-mod producer;
-mod server;
+pub mod producer;
+pub mod schema_registry;
+pub mod server;
 
 #[derive(Parser, Debug)]
 #[command(
-author,
-version,
-about,
-long_about = None,
-propagate_version = true,
-color = ColorChoice::Auto
+    author,
+    version,
+    about,
+    long_about = None,
+    propagate_version = true,
+    color = ColorChoice::Auto
 )]
 pub struct Cli {
-    #[command(flatten, next_help_heading = "Kafka Options")]
-    pub producer: Producer,
     #[arg(
         long = "prometheus",
         env = "KAFKA_PROXY_PROMETHEUS_ADDRESS",
@@ -44,4 +43,6 @@ pub struct Cli {
     pub prometheus_address: Option<SocketAddr>,
     #[command(subcommand)]
     pub server: ServerCommand,
+    #[command(flatten, next_help_heading = "Kafka Options")]
+    pub producer: Producer,
 }

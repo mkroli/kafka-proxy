@@ -54,9 +54,9 @@ impl KafkaProducer {
         ]);
         let producer: FutureProducer = client_config.create()?;
 
-        let schema_registry = match cfg.schema_registry_url {
+        let schema_registry = match &cfg.schema_registry.schema_registry_url {
             None => None,
-            Some(url) => Some(SchemaRegistry::new(url, cfg.topic.clone()).await?),
+            Some(_) => Some(SchemaRegistry::new(cfg.topic.clone(), &cfg.schema_registry).await?),
         };
 
         let dead_letters = match cfg.dead_letters {

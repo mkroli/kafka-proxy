@@ -17,6 +17,7 @@
 use std::env;
 use std::path::PathBuf;
 
+use crate::cli::schema_registry::SchemaRegistry;
 use anyhow::{Error, Result};
 use clap::Args;
 use rdkafka::ClientConfig;
@@ -33,8 +34,6 @@ pub struct Producer {
     pub bootstrap_server: String,
     #[arg(short, long, env = "KAFKA_PROXY_TOPIC")]
     pub topic: String,
-    #[arg(long, env = "KAFKA_PROXY_SCHEMA_REGISTRY_URL")]
-    pub schema_registry_url: Option<String>,
     #[arg(
         long,
         required = false,
@@ -50,6 +49,8 @@ pub struct Producer {
         value_name = "FILENAME"
     )]
     pub dead_letters: Option<PathBuf>,
+    #[command(flatten, next_help_heading = "Schema Registry Options")]
+    pub schema_registry: SchemaRegistry,
 }
 
 impl Producer {
