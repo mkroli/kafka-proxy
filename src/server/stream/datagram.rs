@@ -30,6 +30,10 @@ macro_rules! datagram_socket_message_stream {
     ($tp:ty, $self:ident => $socket:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
+            fn concurrency_limit(&self) -> usize {
+                self.concurrency_limit
+            }
+
             async fn stream(&$self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
                 let socket = $socket;
                 let mut buf = [0; 8192];

@@ -34,6 +34,8 @@ type BytesStream = Box<dyn Stream<Item = Result<Vec<u8>>> + Send + Unpin>;
 
 #[async_trait]
 trait MessageStream {
+    fn concurrency_limit(&self) -> usize;
+
     async fn stream(&self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream>;
 }
 
@@ -54,7 +56,7 @@ where
             messages = stream => messages?,
         };
         messages
-            .for_each_concurrent(8192, |msg| async {
+            .for_each_concurrent(self.concurrency_limit(), |msg| async {
                 match msg {
                     Err(e) => log::error!("{}", e),
                     Ok(msg) => match kafka_producer.send(&msg).await {

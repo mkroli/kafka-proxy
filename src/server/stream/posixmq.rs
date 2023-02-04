@@ -50,6 +50,10 @@ async fn mq_loop(
 
 #[async_trait]
 impl MessageStream for PosixMQServer {
+    fn concurrency_limit(&self) -> usize {
+        self.concurrency_limit
+    }
+
     async fn stream(&self, shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
         let (snd, rcv) = mpsc::channel(1);
 

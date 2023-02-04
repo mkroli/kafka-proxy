@@ -74,6 +74,9 @@ pub enum ServerCommand {
 
 #[derive(Debug, Args)]
 pub struct UnixDatagramServer {
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
+    #[arg()]
     pub path: PathBuf,
 }
 
@@ -98,28 +101,39 @@ pub struct CoapServer {
 }
 
 #[derive(Debug, Args)]
-pub struct StdInServer {}
+pub struct StdInServer {
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
+}
 
 #[derive(Debug, Args)]
 pub struct FileServer {
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
     #[arg()]
     pub file: PathBuf,
 }
 
 #[derive(Debug, Args)]
 pub struct UnixSocketServer {
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
     #[arg()]
     pub file: PathBuf,
 }
 
 #[derive(Debug, Args)]
 pub struct TcpSocketServer {
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
     #[arg()]
     pub address: SocketAddr,
 }
 
 #[derive(Debug, Args)]
 pub struct UdpSocketServer {
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
     #[arg()]
     pub address: SocketAddr,
 }
@@ -128,6 +142,8 @@ pub struct UdpSocketServer {
 pub struct PosixMQServer {
     #[arg(short, long, default_value_t = 10)]
     pub capacity: usize,
+    #[arg(long, default_value_t = 1024)]
+    pub concurrency_limit: usize,
     #[arg()]
     pub name: String,
 }

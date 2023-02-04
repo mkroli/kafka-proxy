@@ -29,6 +29,10 @@ macro_rules! socket_message_stream {
     ($tp:ty, $self:ident => $listener:expr) => {
         #[async_trait]
         impl MessageStream for $tp {
+            fn concurrency_limit(&self) -> usize {
+               self.concurrency_limit
+            }
+
             async fn stream(&$self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
                 let listener = $listener;
                 let (snd, rcv) = mpsc::channel(1);
