@@ -24,32 +24,41 @@ Service to proxy from various protocols to Kafka
 Usage: kafka-proxy [OPTIONS] --topic <TOPIC> <COMMAND>
 
 Commands:
-  stdin       
-  file        
-  unix-dgram  
-  unix        
-  udp         
-  tcp         
-  coap        
-  rest        
-  posixmq     
+  stdin       Read one message per line from stdin (supports formats: Text, Avro).
+  file        Read one message per line from a file (supports formats: Text, Avro).
+  unix-dgram  Receive messages from a Unix Datagram socket (supports formats: Text, Avro, Binary).
+  unix        Receive one message per line from a Unix socket (supports formats: Text, Avro).
+  udp         Receive messages from a UDP socket (supports formats: Text, Avro, Binary).
+  tcp         Receive one message per line from a TCP socket (supports formats: Text, Avro).
+  coap        Receive messages via CoAP (supports formats: Text, Avro, Binary).
+  rest        Receive messages via HTTP (supports formats: Text, Avro, Binary).
+  posixmq     Receive messages via Posix MQ (supports formats: Text, Avro, Binary).
   help        Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
+      --prometheus <ADDRESS>  [env: KAFKA_PROXY_PROMETHEUS_ADDRESS=]
+  -h, --help                  Print help
+  -V, --version               Print version
 
 Kafka Options:
   -b, --bootstrap-server <ADDRESS_LIST>
           [env: KAFKA_PROXY_BOOTSTRAP_SERVER=] [default: 127.0.0.1:9092]
   -t, --topic <TOPIC>
           [env: KAFKA_PROXY_TOPIC=]
-      --schema-registry-url <SCHEMA_REGISTRY_URL>
-          [env: KAFKA_PROXY_SCHEMA_REGISTRY_URL=]
       --producer-config <KEY=VALUE>
           [env: KAFKA_PROXY_PRODUCER_<KEY>=]
       --dead-letters <FILENAME>
           [env: KAFKA_PROXY_DEAD_LETTERS=]
-      --prometheus <ADDRESS>
-          [env: KAFKA_PROXY_PROMETHEUS_ADDRESS=]
+
+Schema Registry Options:
+      --schema-registry-url <SCHEMA_REGISTRY_URL>
+          [env: KAFKA_PROXY_SCHEMA_REGISTRY_URL=]
+      --schema-id <SCHEMA_ID>
+          Use a specific schema id rather than the latest version [env: KAFKA_PROXY_SCHEMA_ID=]
+      --topic-name
+          Use TopicNameStrategy to derive the subject name (default)
+      --record-name <RECORD_NAME>
+          Use RecordNameStrategy to derive the subject name [env: KAFKA_PROXY_SCHEMA_REGISTRY_RECORD_NAME=]
+      --topic-record-name <RECORD_NAME>
+          Use TopicRecordNameStrategy to derive the subject name [env: KAFKA_PROXY_SCHEMA_REGISTRY_TOPIC_RECORD_NAME=]
 ```
