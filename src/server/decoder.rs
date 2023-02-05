@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Michael Krolikowski
+ * Copyright 2023 Michael Krolikowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
+use crate::ENGINE;
 use anyhow::Result;
-use async_trait::async_trait;
-use tokio::sync::broadcast::Receiver;
-use tokio::sync::mpsc::Sender;
+use base64::Engine;
 
-use crate::kafka::KafkaProducer;
-
-#[cfg(feature = "coap")]
-mod coap;
-mod decoder;
-mod rest;
-mod stream;
-
-#[async_trait]
-pub trait Server {
-    async fn run(
-        &self,
-        kafka_producer: KafkaProducer,
-        shutdown_trigger_receiver: Receiver<()>,
-        _shutdown_sender: Sender<()>,
-    ) -> Result<()>;
+pub fn decode_line(line: String, base64: bool) -> Result<Vec<u8>> {
+    if base64 {
+        Ok(ENGINE.decode(line)?)
+    } else {
+        Ok(line.into())
+    }
 }

@@ -17,6 +17,8 @@
 use std::process::exit;
 
 use anyhow::Result;
+use base64::alphabet;
+use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
 use clap::Parser;
 use log::SetLoggerError;
 
@@ -45,6 +47,9 @@ fn configure_logging() -> std::result::Result<(), SetLoggerError> {
         .level(log::LevelFilter::Info)
         .apply()
 }
+
+const ENGINE: GeneralPurpose =
+    GeneralPurpose::new(&alphabet::STANDARD, GeneralPurposeConfig::new());
 
 async fn shutdown_signal() {
     let ctrl_c = async {

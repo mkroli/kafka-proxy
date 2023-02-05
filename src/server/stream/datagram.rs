@@ -50,6 +50,7 @@ macro_rules! datagram_socket_message_stream {
                         };
                         if let Err(e) = snd.send(msg).await {
                             log::warn!("{}", e);
+                            break;
                         }
                     }
                 });

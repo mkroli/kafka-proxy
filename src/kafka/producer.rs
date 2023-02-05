@@ -17,8 +17,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
-use base64::{alphabet, Engine};
+use base64::Engine;
 use opentelemetry::metrics::{Counter, Meter};
 use opentelemetry::KeyValue;
 use rdkafka::producer::{FutureProducer, FutureRecord};
@@ -29,13 +28,10 @@ use tokio::sync::Mutex;
 
 use crate::cli::Producer;
 use crate::kafka::schema_registry::SchemaRegistry;
-use crate::kv;
 use crate::metrics::counter_inc;
+use crate::{kv, ENGINE};
 
 const TIMEOUT: Timeout = Timeout::After(Duration::from_millis(3000));
-
-const ENGINE: GeneralPurpose =
-    GeneralPurpose::new(&alphabet::STANDARD, GeneralPurposeConfig::new());
 
 pub struct KafkaProducer {
     topic: String,

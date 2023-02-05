@@ -104,12 +104,16 @@ pub struct CoapServer {
 pub struct StdInServer {
     #[arg(long, default_value_t = 1024)]
     pub concurrency_limit: usize,
+    #[arg(short, long, default_value_t = false)]
+    pub base64: bool,
 }
 
 #[derive(Debug, Args)]
 pub struct FileServer {
     #[arg(long, default_value_t = 1024)]
     pub concurrency_limit: usize,
+    #[arg(short, long, default_value_t = false)]
+    pub base64: bool,
     #[arg()]
     pub file: PathBuf,
 }
@@ -118,6 +122,8 @@ pub struct FileServer {
 pub struct UnixSocketServer {
     #[arg(long, default_value_t = 1024)]
     pub concurrency_limit: usize,
+    #[arg(short, long, default_value_t = false)]
+    pub base64: bool,
     #[arg()]
     pub file: PathBuf,
 }
@@ -126,6 +132,8 @@ pub struct UnixSocketServer {
 pub struct TcpSocketServer {
     #[arg(long, default_value_t = 1024)]
     pub concurrency_limit: usize,
+    #[arg(short, long, default_value_t = false)]
+    pub base64: bool,
     #[arg()]
     pub address: SocketAddr,
 }

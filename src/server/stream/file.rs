@@ -15,6 +15,7 @@
  */
 
 use crate::cli::{FileServer, StdInServer};
+use crate::server::decoder::decode_line;
 use crate::server::stream::{BytesStream, MessageStream};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -35,15 +36,28 @@ macro_rules! buf_reader_message_stream {
             async fn stream(&$self, mut shutdown_trigger_receiver: Receiver<()>) -> Result<BytesStream> {
                 let reader = BufReader::new($reader);
                 let mut lines = reader.lines();
+                let base64 = $self.base64;
                 let (snd, rcv) = mpsc::channel(1);
                 tokio::spawn(async move {
                     loop {
                         tokio::select! {
                             _ = shutdown_trigger_receiver.recv() => break,
                             line = lines.next_line() => match line {
-                                Ok(Some(l)) => match snd.send(Ok(l.into())).await {
-                                    Ok(()) => (),
-                                    Err(_) => break,
+                                Ok(Some(l)) => {
+                                    let b = match decode_line(l, base64) {
+                                        Ok(l) => l,
+                                        Err(e) => {
+                                            log::warn!("Failed to decode: {e}");
+                                            continue
+                                        }
+                                    };
+                                    match snd.send(Ok(b)).await {
+                                        Ok(()) => (),
+                                        Err(e) => {
+                                            log::warn!("Failed to send: {e}");
+                                            break
+                                        }
+                                    }
                                 },
                                 _ => break,
                             }
