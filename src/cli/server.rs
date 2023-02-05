@@ -74,7 +74,11 @@ pub enum ServerCommand {
 
 #[derive(Debug, Args)]
 pub struct UnixDatagramServer {
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
     #[arg()]
     pub path: PathBuf,
@@ -102,17 +106,25 @@ pub struct CoapServer {
 
 #[derive(Debug, Args)]
 pub struct StdInServer {
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, help = "Base64-decode input")]
     pub base64: bool,
 }
 
 #[derive(Debug, Args)]
 pub struct FileServer {
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, help = "Base64-decode input")]
     pub base64: bool,
     #[arg()]
     pub file: PathBuf,
@@ -120,9 +132,13 @@ pub struct FileServer {
 
 #[derive(Debug, Args)]
 pub struct UnixSocketServer {
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, help = "Base64-decode input")]
     pub base64: bool,
     #[arg()]
     pub file: PathBuf,
@@ -130,9 +146,13 @@ pub struct UnixSocketServer {
 
 #[derive(Debug, Args)]
 pub struct TcpSocketServer {
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, help = "Base64-decode input")]
     pub base64: bool,
     #[arg()]
     pub address: SocketAddr,
@@ -140,7 +160,11 @@ pub struct TcpSocketServer {
 
 #[derive(Debug, Args)]
 pub struct UdpSocketServer {
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
     #[arg()]
     pub address: SocketAddr,
@@ -150,7 +174,11 @@ pub struct UdpSocketServer {
 pub struct PosixMQServer {
     #[arg(short, long, default_value_t = 10)]
     pub capacity: usize,
-    #[arg(long, default_value_t = 1024)]
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
     pub concurrency_limit: usize,
     #[arg()]
     pub name: String,
