@@ -28,15 +28,15 @@ Service to proxy from various protocols to Kafka
 Usage: kafka-proxy [OPTIONS] --topic <TOPIC> <COMMAND>
 
 Commands:
-  stdin       Read one message per line from stdin (supports formats: Text, Avro).
-  file        Read one message per line from a file (supports formats: Text, Avro).
-  unix-dgram  Receive messages from a Unix Datagram socket (supports formats: Text, Avro, Binary).
-  unix        Receive one message per line from a Unix socket (supports formats: Text, Avro).
-  udp         Receive messages from a UDP socket (supports formats: Text, Avro, Binary).
-  tcp         Receive one message per line from a TCP socket (supports formats: Text, Avro).
-  coap        Receive messages via CoAP (supports formats: Text, Avro, Binary).
-  rest        Receive messages via HTTP (supports formats: Text, Avro, Binary).
-  posixmq     Receive messages via Posix MQ (supports formats: Text, Avro, Binary).
+  stdin       Read one message per line from stdin
+  file        Read one message per line from a file
+  unix-dgram  Receive messages from a Unix Datagram socket
+  unix        Receive one message per line from a Unix socket
+  udp         Receive messages from a UDP socket
+  tcp         Receive one message per line from a TCP socket
+  coap        Receive messages via CoAP
+  rest        Receive messages via HTTP
+  posixmq     Receive messages via Posix MQ
   help        Print this message or the help of the given subcommand(s)
 
 Options:
