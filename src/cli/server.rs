@@ -23,52 +23,34 @@ use clap::{Args, Subcommand};
 
 #[derive(Debug, Subcommand)]
 pub enum ServerCommand {
-    #[command(
-        name = "stdin",
-        long_about = "Read one message per line from stdin (supports formats: Text, Avro)."
-    )]
+    #[command(name = "stdin", long_about = "Read one message per line from stdin")]
     StdIn(StdInServer),
-    #[command(
-        name = "file",
-        long_about = "Read one message per line from a file (supports formats: Text, Avro)."
-    )]
+    #[command(name = "file", long_about = "Read one message per line from a file")]
     File(FileServer),
     #[command(
         name = "unix-dgram",
-        long_about = "Receive messages from a Unix Datagram socket (supports formats: Text, Avro, Binary)."
+        long_about = "Receive messages from a Unix Datagram socket"
     )]
     UnixDatagram(UnixDatagramServer),
     #[command(
         name = "unix",
-        long_about = "Receive one message per line from a Unix socket (supports formats: Text, Avro)."
+        long_about = "Receive one message per line from a Unix socket"
     )]
     UnixSocket(UnixSocketServer),
-    #[command(
-        name = "udp",
-        long_about = "Receive messages from a UDP socket (supports formats: Text, Avro, Binary)."
-    )]
+    #[command(name = "udp", long_about = "Receive messages from a UDP socket")]
     UdpSocket(UdpSocketServer),
     #[command(
         name = "tcp",
-        long_about = "Receive one message per line from a TCP socket (supports formats: Text, Avro)."
+        long_about = "Receive one message per line from a TCP socket"
     )]
     TcpSocket(TcpSocketServer),
     #[cfg(feature = "coap")]
-    #[command(
-        name = "coap",
-        long_about = "Receive messages via CoAP (supports formats: Text, Avro, Binary)."
-    )]
+    #[command(name = "coap", long_about = "Receive messages via CoAP")]
     Coap(CoapServer),
-    #[command(
-        name = "rest",
-        long_about = "Receive messages via HTTP (supports formats: Text, Avro, Binary)."
-    )]
+    #[command(name = "rest", long_about = "Receive messages via HTTP")]
     Rest(RestServer),
     #[cfg(feature = "posixmq")]
-    #[command(
-        name = "posixmq",
-        long_about = "Receive messages via Posix MQ (supports formats: Text, Avro, Binary)."
-    )]
+    #[command(name = "posixmq", long_about = "Receive messages via Posix MQ")]
     PosixMQ(PosixMQServer),
 }
 
