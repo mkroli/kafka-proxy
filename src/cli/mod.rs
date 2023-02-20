@@ -46,3 +46,14 @@ pub struct Cli {
     #[command(flatten, next_help_heading = "Kafka Options")]
     pub producer: Producer,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Cli;
+    use clap::CommandFactory;
+
+    #[test]
+    fn verify_cli() {
+        Cli::command().debug_assert();
+    }
+}
