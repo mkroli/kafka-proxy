@@ -24,7 +24,7 @@ pub fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
         serde_json::Value::Array(arr) => {
             let mut result = Vec::with_capacity(arr.len());
             for v in arr {
-                let val = crate::kafka::serde::Deserializer::deserialize(schema, v)?;
+                let val = crate::kafka::serde::deserialize(schema, v)?;
                 result.push(val);
             }
             Ok(Value::Array(result))

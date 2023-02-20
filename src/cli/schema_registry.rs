@@ -60,7 +60,7 @@ pub struct SchemaRegistry {
 }
 
 impl SchemaRegistry {
-    pub fn sr_settings(&self) -> Result<SrSettings> {
+    fn sr_settings(&self) -> Result<SrSettings> {
         match &self.schema_registry_url {
             None => bail!("No Schema Registry URL configured"),
             Some(url) => Ok(SrSettings::new(url.clone())),
@@ -85,10 +85,11 @@ impl SchemaRegistry {
         Ok(schema)
     }
 
-    pub async fn schema(&self, sr_settings: &SrSettings, topic: String) -> Result<Schema> {
-        let schema = self.registered_schema(sr_settings, topic).await?;
-        let schema = Schema::parse_str(&schema.schema)?;
-        Ok(schema)
+    pub async fn schema(&self, topic: String) -> Result<(u32, Schema)> {
+        let sr_settings = self.sr_settings()?;
+        let registered_schema = self.registered_schema(&sr_settings, topic).await?;
+        let schema = Schema::parse_str(&registered_schema.schema)?;
+        Ok((registered_schema.id, schema))
     }
 
     pub fn subject_name_strategy(&self, topic: String) -> SubjectNameStrategy {

@@ -29,48 +29,37 @@ mod number;
 mod record;
 mod union;
 
-#[derive(Debug)]
-pub struct Deserializer {
-    schema: Schema,
+fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
+    let value = match schema {
+        Schema::Null => null::deserialize(json)?,
+        Schema::Boolean => boolean::deserialize(json)?,
+        Schema::Int => number::deserialize_int(json)?,
+        Schema::Long => number::deserialize_long(json)?,
+        Schema::Float => number::deserialize_float(json)?,
+        Schema::Double => number::deserialize_double(json)?,
+        Schema::Bytes => bytes::deserialize_bytes(json)?,
+        Schema::String => bytes::deserialize_string(json)?,
+        Schema::Array(schema) => array::deserialize(schema, json)?,
+        Schema::Map(schema) => map::deserialize(schema, json)?,
+        Schema::Union(schema) => union::deserialize(schema, json)?,
+        Schema::Record { fields, .. } => record::deserialize(fields, json)?,
+        Schema::Enum { symbols, .. } => r#enum::deserialize(symbols, json)?,
+        Schema::Fixed { size, .. } => bytes::deserialize_fixed(*size, json)?,
+        Schema::Decimal { scale, .. } => number::deserialize_decimal(*scale as u32, json)?,
+        Schema::Uuid => bytes::deserialize_uuid(json)?,
+        Schema::Date => datetime::deserialize_date(json)?,
+        Schema::TimeMillis => datetime::deserialize_time_millis(json)?,
+        Schema::TimeMicros => datetime::deserialize_time_micros(json)?,
+        Schema::TimestampMillis => datetime::deserialize_timestamp_millis(json)?,
+        Schema::TimestampMicros => datetime::deserialize_timestamp_micros(json)?,
+        Schema::Duration => bail!("Not implemented: Duration"),
+        Schema::Ref { .. } => bail!("Not implemented: Ref"),
+    };
+    Ok(value)
 }
 
-impl Deserializer {
-    pub fn new(schema: Schema) -> Deserializer {
-        Deserializer { schema }
-    }
-
-    fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
-        let value = match schema {
-            Schema::Null => null::deserialize(json)?,
-            Schema::Boolean => boolean::deserialize(json)?,
-            Schema::Int => number::deserialize_int(json)?,
-            Schema::Long => number::deserialize_long(json)?,
-            Schema::Float => number::deserialize_float(json)?,
-            Schema::Double => number::deserialize_double(json)?,
-            Schema::Bytes => bytes::deserialize_bytes(json)?,
-            Schema::String => bytes::deserialize_string(json)?,
-            Schema::Array(schema) => array::deserialize(schema, json)?,
-            Schema::Map(schema) => map::deserialize(schema, json)?,
-            Schema::Union(schema) => union::deserialize(schema, json)?,
-            Schema::Record { fields, .. } => record::deserialize(fields, json)?,
-            Schema::Enum { symbols, .. } => r#enum::deserialize(symbols, json)?,
-            Schema::Fixed { size, .. } => bytes::deserialize_fixed(*size, json)?,
-            Schema::Decimal { scale, .. } => number::deserialize_decimal(*scale as u32, json)?,
-            Schema::Uuid => bytes::deserialize_uuid(json)?,
-            Schema::Date => datetime::deserialize_date(json)?,
-            Schema::TimeMillis => datetime::deserialize_time_millis(json)?,
-            Schema::TimeMicros => datetime::deserialize_time_micros(json)?,
-            Schema::TimestampMillis => datetime::deserialize_timestamp_millis(json)?,
-            Schema::TimestampMicros => datetime::deserialize_timestamp_micros(json)?,
-            Schema::Duration => bail!("Not implemented: Duration"),
-            Schema::Ref { .. } => bail!("Not implemented: Ref"),
-        };
-        Ok(value)
-    }
-
-    pub fn deserialize_json(&self, json: serde_json::Value) -> Result<Value> {
-        Deserializer::deserialize(&self.schema, json)
-    }
+pub fn deserialize_json(schema: &Schema, json: serde_json::Value) -> Result<Value> {
+    deserialize(schema, json)
 }
 
 #[cfg(test)]
@@ -80,7 +69,7 @@ mod tests {
     use apache_avro::Schema;
     use serde_json::json;
 
-    use crate::kafka::serde::Deserializer;
+    use crate::kafka::serde::deserialize_json;
 
     pub fn test(tp: &serde_json::Value, json: serde_json::Value) -> Result<Value> {
         let schema = json!({
@@ -88,8 +77,7 @@ mod tests {
             "type": tp,
         });
         let schema = Schema::parse(&schema)?;
-        let de = Deserializer::new(schema);
-        let value = de.deserialize_json(json)?;
+        let value = deserialize_json(&schema, json)?;
         Ok(value)
     }
 

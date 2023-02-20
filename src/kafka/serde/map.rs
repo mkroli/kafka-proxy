@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use crate::kafka::serde::Deserializer;
 use anyhow::bail;
 use anyhow::Result;
 use apache_avro::types::Value;
@@ -26,7 +25,7 @@ pub fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
         serde_json::Value::Object(m) => {
             let mut map = HashMap::with_capacity(m.len());
             for (key, value) in m {
-                let value = Deserializer::deserialize(schema, value)?;
+                let value = crate::kafka::serde::deserialize(schema, value)?;
                 map.insert(key, value);
             }
             Ok(Value::Map(map))

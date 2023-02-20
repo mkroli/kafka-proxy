@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use crate::kafka::serde::Deserializer;
 use anyhow::Result;
 use anyhow::{bail, Context};
 use apache_avro::schema::RecordField;
@@ -29,7 +28,7 @@ pub fn deserialize(fields: &Vec<RecordField>, json: serde_json::Value) -> Result
                     .remove(&field.name)
                     .or_else(|| field.default.clone())
                     .with_context(|| format!("Field not found: {}", field.name))?;
-                let value = Deserializer::deserialize(&field.schema, json)?;
+                let value = crate::kafka::serde::deserialize(&field.schema, json)?;
                 result_fields.push((field.name.clone(), value));
             }
             Ok(Value::Record(result_fields))

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-use crate::kafka::serde::Deserializer;
 use anyhow::Context;
 use anyhow::Result;
 use apache_avro::schema::UnionSchema;
@@ -23,7 +22,7 @@ use apache_avro::types::Value;
 pub fn deserialize(schema: &UnionSchema, json: serde_json::Value) -> Result<Value> {
     let mut result = None;
     for (index, variant) in schema.variants().iter().enumerate() {
-        if let Ok(v) = Deserializer::deserialize(variant, json.clone()) {
+        if let Ok(v) = crate::kafka::serde::deserialize(variant, json.clone()) {
             result = Some(Value::Union(index as u32, Box::new(v)));
             break;
         }
