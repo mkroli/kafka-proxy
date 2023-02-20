@@ -2,6 +2,10 @@
 
 [![Build](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml/badge.svg)](https://github.com/mkroli/kafka-proxy/actions/workflows/build.yml)
 
+Sidecar service to proxy from various protocols to Kafka.
+It supports proxying text messages, binary messages (on stream based protocols via newline terminated base64 strings) and [Avro](https://avro.apache.org/) with [Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html).
+For Avro support, JSON messages are expected and converted according to the schema.
+
 ## Installation
 
 ### Download Binaries
