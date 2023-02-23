@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-use anyhow::{bail, Result};
-use apache_avro::Schema;
 use clap::Args;
-use schema_registry_converter::async_impl::schema_registry;
-use schema_registry_converter::async_impl::schema_registry::SrSettings;
-use schema_registry_converter::schema_registry_common::{RegisteredSchema, SubjectNameStrategy};
 
 #[derive(Debug, Args)]
 pub struct SchemaRegistry {
@@ -57,52 +52,4 @@ pub struct SchemaRegistry {
         env = "KAFKA_PROXY_SCHEMA_REGISTRY_TOPIC_RECORD_NAME"
     )]
     pub topic_record_name: Option<String>,
-}
-
-impl SchemaRegistry {
-    fn sr_settings(&self) -> Result<SrSettings> {
-        match &self.schema_registry_url {
-            None => bail!("No Schema Registry URL configured"),
-            Some(url) => Ok(SrSettings::new(url.clone())),
-        }
-    }
-
-    pub async fn registered_schema(
-        &self,
-        sr_settings: &SrSettings,
-        topic: String,
-    ) -> Result<RegisteredSchema> {
-        let schema = match &self.schema_id {
-            Some(id) => schema_registry::get_schema_by_id(*id, sr_settings).await?,
-            None => {
-                schema_registry::get_schema_by_subject(
-                    sr_settings,
-                    &self.subject_name_strategy(topic),
-                )
-                .await?
-            }
-        };
-        Ok(schema)
-    }
-
-    pub async fn schema(&self, topic: String) -> Result<(u32, Schema)> {
-        let sr_settings = self.sr_settings()?;
-        let registered_schema = self.registered_schema(&sr_settings, topic).await?;
-        let schema = Schema::parse_str(&registered_schema.schema)?;
-        Ok((registered_schema.id, schema))
-    }
-
-    pub fn subject_name_strategy(&self, topic: String) -> SubjectNameStrategy {
-        match self {
-            SchemaRegistry {
-                record_name: Some(record_name),
-                ..
-            } => SubjectNameStrategy::RecordNameStrategy(record_name.clone()),
-            SchemaRegistry {
-                topic_record_name: Some(record_name),
-                ..
-            } => SubjectNameStrategy::TopicRecordNameStrategy(topic, record_name.clone()),
-            _ => SubjectNameStrategy::TopicNameStrategy(topic, false),
-        }
-    }
 }
