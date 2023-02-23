@@ -49,13 +49,12 @@ jobs:
           files: kafka-proxy_${{ matrix.suffix }}
 
   container:
-    name: Container Images
+    name: Container Images (${{ matrix.arch }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         arch:
           - linux/amd64
-          - linux/arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v3
