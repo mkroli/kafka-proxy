@@ -16,7 +16,7 @@
 
 use std::process::exit;
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use base64::alphabet;
 use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
 use clap::Parser;
@@ -51,27 +51,23 @@ fn configure_logging() -> std::result::Result<(), SetLoggerError> {
 const ENGINE: GeneralPurpose =
     GeneralPurpose::new(&alphabet::STANDARD, GeneralPurposeConfig::new());
 
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        tokio::signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
+async fn shutdown_signal() -> Result<()> {
+    let ctrl_c = tokio::signal::ctrl_c();
 
     #[cfg(unix)]
     let terminate = async {
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("failed to install signal handler")
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?
             .recv()
-            .await;
+            .await
+            .ok_or(Error::msg("failed to install signal handler"))
     };
 
     #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
+    let terminate = std::future::pending::<Result<()>>();
 
     tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
+        result = ctrl_c => Ok(result?),
+        result = terminate => Ok(result?),
     }
 }
 
@@ -126,7 +122,7 @@ async fn run() -> Result<()> {
         Ok(Err(e)) = prometheus => {
             log::error!("{}", e);
         },
-        _ = shutdown_signal() => (),
+        result = shutdown_signal() => result?,
     }
     shutdown_trigger_send.send(())?;
     server.await?;
