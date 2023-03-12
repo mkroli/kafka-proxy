@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use anyhow::bail;
 use std::net::IpAddr::V4;
 use std::net::Ipv4Addr;
 use std::net::SocketAddr;
@@ -52,6 +53,9 @@ pub enum ServerCommand {
     #[cfg(feature = "posixmq")]
     #[command(name = "posixmq", long_about = "Receive messages via Posix MQ")]
     PosixMQ(PosixMQServer),
+    #[cfg(feature = "nng")]
+    #[command(name = "nng", long_about = "Receive messages via NNG")]
+    Nng(NngServer),
 }
 
 #[derive(Debug, Args)]
@@ -76,6 +80,7 @@ pub struct RestServer {
     pub address: SocketAddr,
 }
 
+#[cfg(feature = "coap")]
 #[derive(Debug, Args)]
 pub struct CoapServer {
     #[arg(
@@ -152,6 +157,7 @@ pub struct UdpSocketServer {
     pub address: SocketAddr,
 }
 
+#[cfg(feature = "posixmq")]
 #[derive(Debug, Args)]
 pub struct PosixMQServer {
     #[arg(short, long, default_value_t = 10)]
@@ -164,4 +170,36 @@ pub struct PosixMQServer {
     pub concurrency_limit: usize,
     #[arg()]
     pub name: String,
+}
+
+#[cfg(feature = "nng")]
+#[derive(Debug, Args)]
+pub struct NngServer {
+    #[arg(
+        long,
+        default_value_t = 1024,
+        help = "Maximum number of unacknowledged messages"
+    )]
+    pub concurrency_limit: usize,
+    #[arg(short, long, value_parser = NngServer::parse_protocol)]
+    pub protocol: nng::Protocol,
+    #[arg(short, long)]
+    pub address: String,
+    #[arg(long = "ack")]
+    pub acknowledge: bool,
+}
+
+#[cfg(feature = "nng")]
+impl NngServer {
+    fn parse_protocol(s: &str) -> anyhow::Result<nng::Protocol> {
+        match s {
+            "pair0" => Ok(nng::Protocol::Pair0),
+            "pair1" => Ok(nng::Protocol::Pair1),
+            "pull0" => Ok(nng::Protocol::Pull0),
+            "rep0" => Ok(nng::Protocol::Rep0),
+            "respondent0" => Ok(nng::Protocol::Respondent0),
+            "sub0" => Ok(nng::Protocol::Sub0),
+            _ => bail!("Unsupported protocol"),
+        }
+    }
 }

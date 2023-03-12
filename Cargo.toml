@@ -64,6 +64,7 @@ opentelemetry = "0.18"
 prometheus = "0.13"
 opentelemetry-prometheus = "0.11"
 posixmq = { version = "1", optional = true }
+nng = { version = "1", optional = true }
 
 [build-dependencies]
 openssl-src = { version = "111", features = ["force-engine"] }
@@ -72,6 +73,7 @@ openssl-src = { version = "111", features = ["force-engine"] }
 reqwest = "0.11"
 
 [features]
-default = ["coap", "posixmq"]
+default = ["coap", "posixmq", "nng"]
 coap = ["dep:coap", "dep:coap-lite"]
 posixmq = ["dep:posixmq"]
+nng = ["dep:nng"]

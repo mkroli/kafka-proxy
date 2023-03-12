@@ -17,6 +17,8 @@
 mod cleanup;
 mod datagram;
 mod file;
+#[cfg(feature = "nng")]
+mod nng;
 #[cfg(feature = "posixmq")]
 mod posixmq;
 mod socket;

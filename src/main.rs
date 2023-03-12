@@ -107,6 +107,8 @@ async fn run() -> Result<()> {
             ServerCommand::UdpSocket(server) => Box::new(server),
             #[cfg(feature = "posixmq")]
             ServerCommand::PosixMQ(server) => Box::new(server),
+            #[cfg(feature = "nng")]
+            ServerCommand::Nng(server) => Box::new(server),
         };
         let result = server.run(producer, shutdown_trigger_recv, shutdown_send);
         match result.await {
