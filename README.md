@@ -37,6 +37,7 @@ Commands:
   coap        Receive messages via CoAP
   rest        Receive messages via HTTP
   posixmq     Receive messages via Posix MQ
+  nng         Receive messages via NNG
   help        Print this message or the help of the given subcommand(s)
 
 Options:
