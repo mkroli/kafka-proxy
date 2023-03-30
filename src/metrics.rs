@@ -25,7 +25,6 @@ use axum::{Router, TypedHeader};
 use opentelemetry::metrics::{Counter, Meter, MeterProvider};
 use opentelemetry::sdk::export::metrics::aggregation;
 use opentelemetry::sdk::metrics::{controllers, processors, selectors};
-use opentelemetry::sdk::Resource;
 use opentelemetry::{Context, KeyValue};
 use opentelemetry_prometheus::PrometheusExporter;
 use prometheus::{Encoder, TextEncoder};
@@ -62,14 +61,10 @@ impl Metrics {
     }
 
     pub fn new() -> Metrics {
-        let controller = controllers::basic(
-            processors::factory(
-                selectors::simple::histogram([1.0, 2.0, 5.0, 10.0, 20.0, 50.0]),
-                aggregation::cumulative_temporality_selector(),
-            )
-            .with_memory(true),
-        )
-        .with_resource(Resource::empty())
+        let controller = controllers::basic(processors::factory(
+            selectors::simple::histogram([1.0, 2.0, 5.0, 10.0, 20.0, 50.0]),
+            aggregation::cumulative_temporality_selector(),
+        ))
         .build();
 
         let exporter = opentelemetry_prometheus::exporter(controller).init();
