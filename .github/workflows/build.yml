@@ -44,3 +44,7 @@ jobs:
       with:
         command: clippy
         args: -- -Dwarnings
+    - name: Completions
+      run: |
+        cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
+        git diff --no-ext-diff --exit-code -- completions/

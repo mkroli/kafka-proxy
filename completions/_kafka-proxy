@@ -1,0 +1,365 @@
+#compdef kafka-proxy
+
+autoload -U is-at-least
+
+_kafka-proxy() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'--prometheus=[]:ADDRESS: ' \
+'-b+[]:ADDRESS_LIST: ' \
+'--bootstrap-server=[]:ADDRESS_LIST: ' \
+'-t+[]:TOPIC: ' \
+'--topic=[]:TOPIC: ' \
+'*--producer-config=[\[env: KAFKA_PROXY_PRODUCER_<KEY>=\]]:KEY=VALUE: ' \
+'--dead-letters=[]:FILENAME:_files' \
+'--schema-registry-url=[]:SCHEMA_REGISTRY_URL: ' \
+'--schema-id=[Use a specific schema id rather than the latest version]:SCHEMA_ID: ' \
+'--record-name=[Use RecordNameStrategy to derive the subject name]:RECORD_NAME: ' \
+'--topic-record-name=[Use TopicRecordNameStrategy to derive the subject name]:RECORD_NAME: ' \
+'--topic-name[Use TopicNameStrategy to derive the subject name (default)]' \
+'-h[Print help]' \
+'--help[Print help]' \
+'-V[Print version]' \
+'--version[Print version]' \
+":: :_kafka-proxy_commands" \
+"*::: :->kafka-proxy" \
+&& ret=0
+    case $state in
+    (kafka-proxy)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:kafka-proxy-command-$line[1]:"
+        case $line[1] in
+            (stdin)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-b[Base64-decode input]' \
+'--base64[Base64-decode input]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+&& ret=0
+;;
+(file)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-b[Base64-decode input]' \
+'--base64[Base64-decode input]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':file:_files' \
+&& ret=0
+;;
+(unix-dgram)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':path:_files' \
+&& ret=0
+;;
+(unix)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-b[Base64-decode input]' \
+'--base64[Base64-decode input]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':file:_files' \
+&& ret=0
+;;
+(udp)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':address:' \
+&& ret=0
+;;
+(tcp)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-b[Base64-decode input]' \
+'--base64[Base64-decode input]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':address:' \
+&& ret=0
+;;
+(coap)
+_arguments "${_arguments_options[@]}" \
+'-a+[]:ADDRESS: ' \
+'--address=[]:ADDRESS: ' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+&& ret=0
+;;
+(rest)
+_arguments "${_arguments_options[@]}" \
+'-a+[]:ADDRESS: ' \
+'--address=[]:ADDRESS: ' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+&& ret=0
+;;
+(posixmq)
+_arguments "${_arguments_options[@]}" \
+'-c+[]:CAPACITY: ' \
+'--capacity=[]:CAPACITY: ' \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':name:' \
+&& ret=0
+;;
+(nng)
+_arguments "${_arguments_options[@]}" \
+'--concurrency-limit=[Maximum number of unacknowledged messages]:CONCURRENCY_LIMIT: ' \
+'-p+[]:PROTOCOL: ' \
+'--protocol=[]:PROTOCOL: ' \
+'-a+[]:ADDRESS: ' \
+'--address=[]:ADDRESS: ' \
+'--ack[]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+":: :_kafka-proxy__help_commands" \
+"*::: :->help" \
+&& ret=0
+
+    case $state in
+    (help)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:kafka-proxy-help-command-$line[1]:"
+        case $line[1] in
+            (stdin)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(file)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(unix-dgram)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(unix)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(udp)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(tcp)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(coap)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(rest)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(posixmq)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(nng)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_kafka-proxy_commands] )) ||
+_kafka-proxy_commands() {
+    local commands; commands=(
+'stdin:' \
+'file:' \
+'unix-dgram:' \
+'unix:' \
+'udp:' \
+'tcp:' \
+'coap:' \
+'rest:' \
+'posixmq:' \
+'nng:' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'kafka-proxy commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__coap_commands] )) ||
+_kafka-proxy__coap_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy coap commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__coap_commands] )) ||
+_kafka-proxy__help__coap_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help coap commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__file_commands] )) ||
+_kafka-proxy__file_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy file commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__file_commands] )) ||
+_kafka-proxy__help__file_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help file commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help_commands] )) ||
+_kafka-proxy__help_commands() {
+    local commands; commands=(
+'stdin:' \
+'file:' \
+'unix-dgram:' \
+'unix:' \
+'udp:' \
+'tcp:' \
+'coap:' \
+'rest:' \
+'posixmq:' \
+'nng:' \
+'help:Print this message or the help of the given subcommand(s)' \
+    )
+    _describe -t commands 'kafka-proxy help commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__help_commands] )) ||
+_kafka-proxy__help__help_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help help commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__nng_commands] )) ||
+_kafka-proxy__help__nng_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help nng commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__nng_commands] )) ||
+_kafka-proxy__nng_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy nng commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__posixmq_commands] )) ||
+_kafka-proxy__help__posixmq_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help posixmq commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__posixmq_commands] )) ||
+_kafka-proxy__posixmq_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy posixmq commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__rest_commands] )) ||
+_kafka-proxy__help__rest_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help rest commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__rest_commands] )) ||
+_kafka-proxy__rest_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy rest commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__stdin_commands] )) ||
+_kafka-proxy__help__stdin_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help stdin commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__stdin_commands] )) ||
+_kafka-proxy__stdin_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy stdin commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__tcp_commands] )) ||
+_kafka-proxy__help__tcp_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help tcp commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__tcp_commands] )) ||
+_kafka-proxy__tcp_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy tcp commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__udp_commands] )) ||
+_kafka-proxy__help__udp_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help udp commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__udp_commands] )) ||
+_kafka-proxy__udp_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy udp commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__unix_commands] )) ||
+_kafka-proxy__help__unix_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help unix commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__unix_commands] )) ||
+_kafka-proxy__unix_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy unix commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__help__unix-dgram_commands] )) ||
+_kafka-proxy__help__unix-dgram_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy help unix-dgram commands' commands "$@"
+}
+(( $+functions[_kafka-proxy__unix-dgram_commands] )) ||
+_kafka-proxy__unix-dgram_commands() {
+    local commands; commands=()
+    _describe -t commands 'kafka-proxy unix-dgram commands' commands "$@"
+}
+
+if [ "$funcstack[1]" = "_kafka-proxy" ]; then
+    _kafka-proxy "$@"
+else
+    compdef _kafka-proxy kafka-proxy
+fi

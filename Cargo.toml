@@ -8,6 +8,10 @@ repository = "https://github.com/mkroli/kafka-proxy"
 readme = "README.md"
 authors = ["Michael Krolikowski"]
 
+[[bin]]
+name = "kafka-proxy-completions"
+path = "src/completions.rs"
+
 [package.metadata.cross.build]
 env.passthrough = [
     "krb5_cv_attr_constructor_destructor=yes",
@@ -42,6 +46,7 @@ log = "0.4"
 fern = "0.6"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
+clap_complete = "4"
 serde = "1"
 serde_json = { version = "1", features = ["arbitrary_precision"] }
 base64 = "0.21"
