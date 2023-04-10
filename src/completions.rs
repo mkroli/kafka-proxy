@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-use std::io::stdout;
-use clap::{CommandFactory, Parser, ColorChoice};
+use clap::{ColorChoice, CommandFactory, Parser};
 use clap_complete::Shell;
+use std::io::stdout;
 
 #[allow(unused)]
 mod cli;
