@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#![forbid(unsafe_code)]
+
 use std::process::exit;
 
 use anyhow::{Error, Result};
@@ -71,6 +73,24 @@ async fn shutdown_signal() -> Result<()> {
     }
 }
 
+fn server(server: ServerCommand) -> Box<dyn Server + Send> {
+    match server {
+        ServerCommand::Rest(server) => Box::new(server),
+        #[cfg(feature = "coap")]
+        ServerCommand::Coap(server) => Box::new(server),
+        ServerCommand::UnixDatagram(server) => Box::new(server),
+        ServerCommand::StdIn(server) => Box::new(server),
+        ServerCommand::File(server) => Box::new(server),
+        ServerCommand::UnixSocket(server) => Box::new(server),
+        ServerCommand::TcpSocket(server) => Box::new(server),
+        ServerCommand::UdpSocket(server) => Box::new(server),
+        #[cfg(feature = "posixmq")]
+        ServerCommand::PosixMQ(server) => Box::new(server),
+        #[cfg(feature = "nng")]
+        ServerCommand::Nng(server) => Box::new(server),
+    }
+}
+
 async fn run() -> Result<()> {
     configure_logging()?;
 
@@ -92,24 +112,10 @@ async fn run() -> Result<()> {
         })
     };
 
-    let producer = KafkaProducer::new(cli.producer, meter.clone()).await?;
+    let producer = KafkaProducer::new(cli.producer, &meter).await?;
 
     let server = tokio::spawn(async move {
-        let server: Box<dyn Server + Send> = match cli.server {
-            ServerCommand::Rest(server) => Box::new(server),
-            #[cfg(feature = "coap")]
-            ServerCommand::Coap(server) => Box::new(server),
-            ServerCommand::UnixDatagram(server) => Box::new(server),
-            ServerCommand::StdIn(server) => Box::new(server),
-            ServerCommand::File(server) => Box::new(server),
-            ServerCommand::UnixSocket(server) => Box::new(server),
-            ServerCommand::TcpSocket(server) => Box::new(server),
-            ServerCommand::UdpSocket(server) => Box::new(server),
-            #[cfg(feature = "posixmq")]
-            ServerCommand::PosixMQ(server) => Box::new(server),
-            #[cfg(feature = "nng")]
-            ServerCommand::Nng(server) => Box::new(server),
-        };
+        let server = server(cli.server);
         let result = server.run(producer, shutdown_trigger_recv, shutdown_send);
         match result.await {
             Ok(()) => (),

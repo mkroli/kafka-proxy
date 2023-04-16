@@ -28,6 +28,7 @@ use tokio::sync::Mutex;
 
 use crate::cli::Producer;
 use crate::kafka::schema_registry::SchemaRegistry;
+use crate::kafka::telemetry_client_context::TelemetryClientContext;
 use crate::metrics::counter_inc;
 use crate::{kv, ENGINE};
 
@@ -35,7 +36,7 @@ const TIMEOUT: Timeout = Timeout::After(Duration::from_millis(3000));
 
 pub struct KafkaProducer {
     topic: String,
-    producer: FutureProducer,
+    producer: FutureProducer<TelemetryClientContext>,
     schema_registry: Option<SchemaRegistry>,
     dead_letters: Option<Mutex<File>>,
     producer_requests_counter: Counter<u64>,
@@ -43,12 +44,18 @@ pub struct KafkaProducer {
 }
 
 impl KafkaProducer {
-    pub async fn new(cfg: Producer, meter: Meter) -> Result<KafkaProducer> {
+    pub async fn new(cfg: Producer, meter: &Meter) -> Result<KafkaProducer> {
         let client_config = cfg.client_config(vec![
             ("client.id", "kafka-proxy"),
             ("bootstrap.servers", &cfg.bootstrap_server),
+            (
+                "statistics.interval.ms",
+                &crate::metrics::COLLECT_PERIOD_MS.to_string(),
+            ),
         ]);
-        let producer: FutureProducer = client_config.create()?;
+        let context = TelemetryClientContext::new(meter);
+        let producer: FutureProducer<TelemetryClientContext, _> =
+            client_config.create_with_context(context)?;
 
         let schema_registry = match &cfg.schema_registry.schema_registry_url {
             None => None,
@@ -68,11 +75,11 @@ impl KafkaProducer {
         };
 
         let producer_requests_counter = meter
-            .u64_counter("producer.requests")
+            .u64_counter("kafkaproxy.requests")
             .with_description("Number of requests")
             .init();
         let producer_sent_counter = meter
-            .u64_counter("kafka.produced")
+            .u64_counter("kafkaproxy.produced")
             .with_description("Number of produced Kafka Records")
             .init();
 

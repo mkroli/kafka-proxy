@@ -17,5 +17,6 @@
 mod producer;
 mod schema_registry;
 mod serde;
+mod telemetry_client_context;
 
 pub use producer::KafkaProducer;

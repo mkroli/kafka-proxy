@@ -25,12 +25,16 @@ use axum::{Router, TypedHeader};
 use opentelemetry::metrics::{Counter, Meter, MeterProvider};
 use opentelemetry::sdk::export::metrics::aggregation;
 use opentelemetry::sdk::metrics::{controllers, processors, selectors};
+use opentelemetry::sdk::Resource;
 use opentelemetry::{Context, KeyValue};
 use opentelemetry_prometheus::PrometheusExporter;
 use prometheus::{Encoder, TextEncoder};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::broadcast::Receiver;
+
+pub const COLLECT_PERIOD_MS: u64 = 10000;
 
 pub struct Metrics {
     exporter: PrometheusExporter,
@@ -65,6 +69,11 @@ impl Metrics {
             selectors::simple::histogram([1.0, 2.0, 5.0, 10.0, 20.0, 50.0]),
             aggregation::cumulative_temporality_selector(),
         ))
+        .with_collect_period(Duration::from_millis(COLLECT_PERIOD_MS))
+        .with_resource(Resource::new([KeyValue::new(
+            "service.name",
+            env!("CARGO_PKG_NAME"),
+        )]))
         .build();
 
         let exporter = opentelemetry_prometheus::exporter(controller).init();
