@@ -42,6 +42,11 @@ jobs:
         run: |
           ${{ matrix.cargo }} build --release --locked --target ${{ matrix.target }}
           mv target/${{ matrix.target }}/release/kafka-proxy kafka-proxy_${{ matrix.suffix }}
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: kafka-proxy_${{ matrix.suffix }}
+          path: kafka-proxy_${{ matrix.suffix }}
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -50,11 +55,20 @@ jobs:
 
   container:
     name: Container Images (${{ matrix.arch }})
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch:
-          - linux/amd64
+        include:
+          - arch: linux/amd64
+            suffix: x86_64-linux-musl
+            short_suffix: x86_64-linux
+          - arch: linux/aarch64
+            suffix: aarch64-linux-musl
+            short_suffix: aarch64-linux
+          - arch: linux/arm/v7
+            suffix: armv7-linux-musleabihf
+            short_suffix: armv7-linux
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -68,12 +82,56 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Retrieve Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: kafka-proxy_${{ matrix.suffix }}
+          path: build/
+      - name: Prepare Dockerfile
+        run: |
+          mv build/kafka-proxy_${{ matrix.suffix }} build/kafka-proxy
+          chmod 0755 build/kafka-proxy
+          echo 'FROM scratch'                  > build/Dockerfile
+          echo 'ADD kafka-proxy /kafka-proxy' >> build/Dockerfile
+          echo 'ENTRYPOINT ["/kafka-proxy"]'  >> build/Dockerfile
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: build
           platforms: ${{ matrix.arch }}
           push: true
           tags: |
-            "ghcr.io/mkroli/kafka-proxy:latest"
-            "ghcr.io/mkroli/kafka-proxy:${{github.ref_name}}"
+            "ghcr.io/mkroli/kafka-proxy:latest-${{ matrix.short_suffix }}"
+            "ghcr.io/mkroli/kafka-proxy:${{ github.ref_name }}-${{ matrix.short_suffix }}"
+
+  container_manifest:
+    name: Container Manifest
+    needs: container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: GitHub Container Registry Login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push tag manifest
+        run: |
+          docker manifest create \
+            ghcr.io/mkroli/kafka-proxy:${{ github.ref_name }} \
+            --amend ghcr.io/mkroli/kafka-proxy:${{ github.ref_name }}-x86_64-linux \
+            --amend ghcr.io/mkroli/kafka-proxy:${{ github.ref_name }}-aarch64-linux \
+            --amend ghcr.io/mkroli/kafka-proxy:${{ github.ref_name }}-armv7-linux
+          docker manifest push \
+            ghcr.io/mkroli/kafka-proxy:${{ github.ref_name }}
+      - name: Create and push latest manifest
+        run: |
+          docker manifest create \
+            ghcr.io/mkroli/kafka-proxy:latest \
+            --amend ghcr.io/mkroli/kafka-proxy:latest-x86_64-linux \
+            --amend ghcr.io/mkroli/kafka-proxy:latest-aarch64-linux \
+            --amend ghcr.io/mkroli/kafka-proxy:latest-armv7-linux
+          docker manifest push \
+            ghcr.io/mkroli/kafka-proxy:latest
