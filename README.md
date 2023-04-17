@@ -18,7 +18,7 @@ docker run --rm -it ghcr.io/mkroli/kafka-proxy --help
 
 ### Using Cargo
 ```bash
-cargo install --git https://github.com/mkroli/kafka-proxy
+cargo install --locked --bin kafka-proxy --git https://github.com/mkroli/kafka-proxy
 ```
 
 ## Usage
