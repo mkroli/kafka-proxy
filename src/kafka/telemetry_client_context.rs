@@ -14,96 +14,32 @@
  * limitations under the License.
  */
 
-use crate::kv;
-use opentelemetry::metrics::{Meter, ObservableGauge};
-use opentelemetry::Context;
+use std::sync::{Arc, RwLock};
+
+use anyhow::Result;
+use opentelemetry::metrics::Meter;
 use opentelemetry::KeyValue;
 use rdkafka::{ClientContext, Statistics};
 
+use crate::kv;
+
 pub struct TelemetryClientContext {
-    replyq: ObservableGauge<i64>,
-    msgcnt: ObservableGauge<u64>,
-    tx: ObservableGauge<i64>,
-    tx_bytes: ObservableGauge<i64>,
-    rx: ObservableGauge<i64>,
-    rx_bytes: ObservableGauge<i64>,
-    txmsgs: ObservableGauge<i64>,
-    txmsg_bytes: ObservableGauge<i64>,
-    rxmsgs: ObservableGauge<i64>,
-    rxmsg_bytes: ObservableGauge<i64>,
-    broker_state: ObservableGauge<i64>,
-    broker_outbuf_cnt: ObservableGauge<i64>,
-    broker_outbuf_msg_cnt: ObservableGauge<i64>,
-    broker_waitresp_cnt: ObservableGauge<i64>,
-    broker_waitresp_msg_cnt: ObservableGauge<i64>,
-    broker_tx: ObservableGauge<u64>,
-    broker_txbytes: ObservableGauge<u64>,
-    broker_rx: ObservableGauge<u64>,
-    broker_rxbytes: ObservableGauge<u64>,
+    latest: Arc<RwLock<Statistics>>,
 }
 
 impl ClientContext for TelemetryClientContext {
     fn stats(&self, statistics: Statistics) {
-        let context = Context::current();
-        self.replyq.observe(&context, statistics.replyq, &[]);
-        self.msgcnt.observe(&context, statistics.msg_cnt, &[]);
-        self.tx.observe(&context, statistics.tx, &[]);
-        self.tx_bytes.observe(&context, statistics.tx_bytes, &[]);
-        self.rx.observe(&context, statistics.rx, &[]);
-        self.rx_bytes.observe(&context, statistics.rx_bytes, &[]);
-        self.txmsgs.observe(&context, statistics.txmsgs, &[]);
-        self.txmsg_bytes
-            .observe(&context, statistics.txmsg_bytes, &[]);
-        self.rxmsgs.observe(&context, statistics.rxmsgs, &[]);
-        self.rxmsg_bytes
-            .observe(&context, statistics.rxmsg_bytes, &[]);
-
-        for (name, broker) in statistics.brokers {
-            for state in [
-                "INIT",
-                "DOWN",
-                "CONNECT",
-                "AUTH",
-                "APIVERSION_QUERY",
-                "AUTH_HANDSHAKE",
-                "UP",
-                "UPDATE",
-            ] {
-                let v = (broker.state == state) as i64;
-                self.broker_state.observe(
-                    &context,
-                    v,
-                    kv![
-                        "name" => name.clone(),
-                        "nodeid" => broker.nodeid.to_string(),
-                        "nodename" => broker.nodename.clone(),
-                        "state" => state
-                    ],
-                );
+        match self.latest.write() {
+            Ok(mut latest) => {
+                *latest = statistics;
             }
-            let attrs = kv![
-                "name" => name.clone(),
-                "nodeid" => broker.nodeid.to_string(),
-                "nodename" => broker.nodename.clone()
-            ];
-            self.broker_outbuf_cnt
-                .observe(&context, broker.outbuf_cnt, attrs);
-            self.broker_outbuf_msg_cnt
-                .observe(&context, broker.outbuf_msg_cnt, attrs);
-            self.broker_waitresp_cnt
-                .observe(&context, broker.waitresp_cnt, attrs);
-            self.broker_waitresp_msg_cnt
-                .observe(&context, broker.waitresp_msg_cnt, attrs);
-            self.broker_tx.observe(&context, broker.tx, attrs);
-            self.broker_txbytes.observe(&context, broker.txbytes, attrs);
-            self.broker_rx.observe(&context, broker.rx, attrs);
-            self.broker_rxbytes.observe(&context, broker.rxbytes, attrs);
+            Err(e) => log::warn!("Failed to update statistics: {e}"),
         }
     }
 }
 
 impl TelemetryClientContext {
-    pub fn new(meter: &Meter) -> TelemetryClientContext {
+    pub fn new(meter: &Meter) -> Result<TelemetryClientContext> {
         let replyq = meter
             .i64_observable_gauge("kafka.producer.replyq")
             .with_description("Number of ops (callbacks, events, etc) waiting in queue for application to serve with rd_kafka_poll()")
@@ -184,26 +120,90 @@ impl TelemetryClientContext {
             .with_description("Total number of bytes received")
             .init();
 
-        TelemetryClientContext {
-            replyq,
-            msgcnt,
-            tx,
-            tx_bytes,
-            rx,
-            rx_bytes,
-            txmsgs,
-            txmsg_bytes,
-            rxmsgs,
-            rxmsg_bytes,
-            broker_state,
-            broker_outbuf_cnt,
-            broker_outbuf_msg_cnt,
-            broker_waitresp_cnt,
-            broker_waitresp_msg_cnt,
-            broker_tx,
-            broker_txbytes,
-            broker_rx,
-            broker_rxbytes,
-        }
+        let latest = Arc::new(RwLock::new(Statistics::default()));
+        let context = TelemetryClientContext {
+            latest: latest.clone(),
+        };
+        meter.register_callback(
+            &[
+                replyq.as_any(),
+                msgcnt.as_any(),
+                tx.as_any(),
+                tx_bytes.as_any(),
+                rx.as_any(),
+                rx_bytes.as_any(),
+                txmsgs.as_any(),
+                txmsg_bytes.as_any(),
+                rxmsgs.as_any(),
+                rxmsg_bytes.as_any(),
+                broker_state.as_any(),
+                broker_outbuf_cnt.as_any(),
+                broker_outbuf_msg_cnt.as_any(),
+                broker_waitresp_cnt.as_any(),
+                broker_waitresp_msg_cnt.as_any(),
+                broker_tx.as_any(),
+                broker_txbytes.as_any(),
+                broker_rx.as_any(),
+                broker_rxbytes.as_any(),
+            ],
+            move |observer| match latest.read() {
+                Ok(stats) => {
+                    observer.observe_i64(&replyq, stats.replyq, &[]);
+                    observer.observe_u64(&msgcnt, stats.msg_cnt, &[]);
+                    observer.observe_i64(&tx, stats.tx, &[]);
+                    observer.observe_i64(&tx_bytes, stats.tx_bytes, &[]);
+                    observer.observe_i64(&rx, stats.rx, &[]);
+                    observer.observe_i64(&rx_bytes, stats.rx_bytes, &[]);
+                    observer.observe_i64(&txmsgs, stats.txmsgs, &[]);
+                    observer.observe_i64(&txmsg_bytes, stats.txmsg_bytes, &[]);
+                    observer.observe_i64(&rxmsgs, stats.rxmsgs, &[]);
+                    observer.observe_i64(&rxmsg_bytes, stats.rxmsg_bytes, &[]);
+
+                    for (name, broker) in &stats.brokers {
+                        for state in [
+                            "INIT",
+                            "DOWN",
+                            "CONNECT",
+                            "AUTH",
+                            "APIVERSION_QUERY",
+                            "AUTH_HANDSHAKE",
+                            "UP",
+                            "UPDATE",
+                        ] {
+                            let v = (broker.state == state) as i64;
+                            observer.observe_i64(
+                                &broker_state,
+                                v,
+                                kv![
+                                    "name" => name.clone(),
+                                    "nodeid" => broker.nodeid.to_string(),
+                                    "nodename" => broker.nodename.clone(),
+                                    "state" => state
+                                ],
+                            );
+                        }
+                        let attrs = kv![
+                            "name" => name.clone(),
+                            "nodeid" => broker.nodeid.to_string(),
+                            "nodename" => broker.nodename.clone()
+                        ];
+                        observer.observe_i64(&broker_outbuf_cnt, broker.outbuf_cnt, attrs);
+                        observer.observe_i64(&broker_outbuf_msg_cnt, broker.outbuf_msg_cnt, attrs);
+                        observer.observe_i64(&broker_waitresp_cnt, broker.waitresp_cnt, attrs);
+                        observer.observe_i64(
+                            &broker_waitresp_msg_cnt,
+                            broker.waitresp_msg_cnt,
+                            attrs,
+                        );
+                        observer.observe_u64(&broker_tx, broker.tx, attrs);
+                        observer.observe_u64(&broker_txbytes, broker.txbytes, attrs);
+                        observer.observe_u64(&broker_rx, broker.rx, attrs);
+                        observer.observe_u64(&broker_rxbytes, broker.rxbytes, attrs);
+                    }
+                }
+                Err(e) => log::warn!("Failed to retrieve statistics: {e}"),
+            },
+        )?;
+        Ok(context)
     }
 }

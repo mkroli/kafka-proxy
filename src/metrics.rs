@@ -14,41 +14,34 @@
  * limitations under the License.
  */
 
+use std::net::SocketAddr;
+use std::sync::Arc;
+
 use anyhow::Result;
 use axum::extract::State;
 use axum::headers::ContentType;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
-use axum::Server;
 use axum::{Router, TypedHeader};
-use opentelemetry::metrics::{Counter, Meter, MeterProvider};
-use opentelemetry::sdk::export::metrics::aggregation;
-use opentelemetry::sdk::metrics::{controllers, processors, selectors};
+use hyper::Server;
+use opentelemetry::metrics::{Counter, Meter};
+use opentelemetry::sdk::metrics::MeterProvider;
 use opentelemetry::sdk::Resource;
-use opentelemetry::{Context, KeyValue};
-use opentelemetry_prometheus::PrometheusExporter;
-use prometheus::{Encoder, TextEncoder};
-use std::net::SocketAddr;
-use std::sync::Arc;
-use std::time::Duration;
+use opentelemetry::{metrics::MeterProvider as _, KeyValue};
+use prometheus::{Encoder, Registry, TextEncoder};
 use tokio::sync::broadcast::Receiver;
 
 pub const COLLECT_PERIOD_MS: u64 = 10000;
 
 pub struct Metrics {
-    exporter: PrometheusExporter,
-}
-
-impl Default for Metrics {
-    fn default() -> Self {
-        Self::new()
-    }
+    registry: Registry,
+    provider: MeterProvider,
 }
 
 impl IntoResponse for &Metrics {
     fn into_response(self) -> Response {
-        let metric_families = self.exporter.registry().gather();
+        let metric_families = self.registry.gather();
         let encoder = TextEncoder::new();
         let mut result = Vec::new();
         let result = match encoder.encode(&metric_families, &mut result) {
@@ -64,20 +57,19 @@ impl Metrics {
         metrics.into_response()
     }
 
-    pub fn new() -> Metrics {
-        let controller = controllers::basic(processors::factory(
-            selectors::simple::histogram([1.0, 2.0, 5.0, 10.0, 20.0, 50.0]),
-            aggregation::cumulative_temporality_selector(),
-        ))
-        .with_collect_period(Duration::from_millis(COLLECT_PERIOD_MS))
-        .with_resource(Resource::new([KeyValue::new(
-            "service.name",
-            env!("CARGO_PKG_NAME"),
-        )]))
-        .build();
-
-        let exporter = opentelemetry_prometheus::exporter(controller).init();
-        Metrics { exporter }
+    pub fn new() -> Result<Metrics> {
+        let registry = Registry::new();
+        let exporter = opentelemetry_prometheus::exporter()
+            .with_registry(registry.clone())
+            .build()?;
+        let provider = MeterProvider::builder()
+            .with_reader(exporter)
+            .with_resource(Resource::new([KeyValue::new(
+                "service.name",
+                env!("CARGO_PKG_NAME"),
+            )]))
+            .build();
+        Ok(Metrics { registry, provider })
     }
 
     pub async fn run(
@@ -97,11 +89,8 @@ impl Metrics {
         Ok(())
     }
 
-    pub fn meter_provider(&self) -> Result<Meter> {
-        Ok(self
-            .exporter
-            .meter_provider()?
-            .meter(env!("CARGO_PKG_NAME")))
+    pub fn meter_provider(&self) -> Meter {
+        self.provider.meter(env!("CARGO_PKG_NAME"))
     }
 }
 
@@ -113,5 +102,5 @@ macro_rules! kv {
 }
 
 pub fn counter_inc(counter: &Counter<u64>, attributes: &[KeyValue]) {
-    counter.add(&Context::current(), 1, attributes)
+    counter.add(1, attributes)
 }

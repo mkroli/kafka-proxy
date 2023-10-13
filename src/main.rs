@@ -99,8 +99,8 @@ async fn run() -> Result<()> {
 
     let cli = Cli::parse();
 
-    let metrics = Metrics::new();
-    let meter = metrics.meter_provider()?;
+    let metrics = Metrics::new()?;
+    let meter = metrics.meter_provider();
     let prometheus = if let Some(addr) = cli.prometheus_address {
         let prometheus = metrics.run(addr, shutdown_trigger_send.subscribe());
         tokio::spawn(prometheus)

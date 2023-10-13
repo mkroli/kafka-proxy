@@ -53,7 +53,7 @@ impl KafkaProducer {
                 &crate::metrics::COLLECT_PERIOD_MS.to_string(),
             ),
         ]);
-        let context = TelemetryClientContext::new(meter);
+        let context = TelemetryClientContext::new(meter)?;
         let producer: FutureProducer<TelemetryClientContext, _> =
             client_config.create_with_context(context)?;
 
