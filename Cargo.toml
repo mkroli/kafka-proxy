@@ -72,7 +72,7 @@ posixmq = { version = "1", optional = true }
 nng = { version = "1", optional = true }
 
 [build-dependencies]
-openssl-src = { version = "111", features = ["force-engine"] }
+openssl-src = { version = "300", features = ["force-engine"] }
 
 [dev-dependencies]
 reqwest = "0.11"
