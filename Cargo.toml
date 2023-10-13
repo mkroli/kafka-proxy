@@ -51,12 +51,12 @@ serde = "1"
 serde_json = { version = "1", features = ["arbitrary_precision"] }
 base64 = "0.21"
 uuid = "1"
-apache-avro = "0.14"
+apache-avro = "0.15"
 num-traits = "0.2"
 num-bigint = "0.4"
-bigdecimal = "0.3"
+bigdecimal = "0.4"
 schema_registry_converter = { version = "3.1", features = ["avro"] }
-rdkafka = { version = "0.31", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
+rdkafka = { version = "0.34", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
 async-trait = "0.1"
 futures = "0.3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "sync", "fs", "net"] }
