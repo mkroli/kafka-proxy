@@ -51,7 +51,9 @@ fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
         Schema::TimeMillis => datetime::deserialize_time_millis(json)?,
         Schema::TimeMicros => datetime::deserialize_time_micros(json)?,
         Schema::TimestampMillis => datetime::deserialize_timestamp_millis(json)?,
+        Schema::LocalTimestampMillis => datetime::deserialize_local_timestamp_millis(json)?,
         Schema::TimestampMicros => datetime::deserialize_timestamp_micros(json)?,
+        Schema::LocalTimestampMicros => datetime::deserialize_local_timestamp_micros(json)?,
         Schema::Duration => bail!("Not implemented: Duration"),
         Schema::Ref { .. } => bail!("Not implemented: Ref"),
     };

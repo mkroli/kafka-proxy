@@ -51,11 +51,11 @@ serde = "1"
 serde_json = { version = "1", features = ["arbitrary_precision"] }
 base64 = "0.21"
 uuid = "1"
-apache-avro = "0.15"
+apache-avro = "0.16"
 num-traits = "0.2"
 num-bigint = "0.4"
 bigdecimal = "0.4"
-schema_registry_converter = { version = "3.1", features = ["avro"] }
+schema_registry_converter = { version = "4", features = ["avro"] }
 rdkafka = { version = "0.34", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
 async-trait = "0.1"
 futures = "0.3"
@@ -63,8 +63,8 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "syn
 tokio-stream = { version = "0.1", features = ["sync", "io-util"] }
 hyper = "0.14"
 axum = { version = "0.6", features = ["headers", "http1", "http2"] }
-coap = { version = "0.12", optional = true }
-coap-lite = { version = "0.9", optional = true }
+coap = { version = "0.13", optional = true }
+coap-lite = { version = "0.11", optional = true }
 opentelemetry = "0.20"
 prometheus = "0.13"
 opentelemetry-prometheus = "0.13"

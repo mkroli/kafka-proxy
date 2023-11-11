@@ -75,32 +75,52 @@ pub fn deserialize_time_micros(json: serde_json::Value) -> Result<Value> {
     }
 }
 
-pub fn deserialize_timestamp_millis(json: serde_json::Value) -> Result<Value> {
+fn deserialize_millis(json: serde_json::Value, tp: &str) -> Result<i64> {
     match json {
         serde_json::Value::String(str) => {
             let date_time = deserialize_datetime(&str)?;
-            Ok(Value::TimestampMillis(date_time.timestamp_millis()))
+            Ok(date_time.timestamp_millis())
         }
         serde_json::Value::Number(n) => {
             let timestamp = i64::from_str(&format!("{n}"))?;
-            Ok(Value::TimestampMillis(timestamp))
+            Ok(timestamp)
         }
-        v => bail!("Types don't match: TimestampMillis, {v}"),
+        v => bail!("Types don't match: {tp}, {v}"),
+    }
+}
+
+pub fn deserialize_timestamp_millis(json: serde_json::Value) -> Result<Value> {
+    let millis = deserialize_millis(json, "TimestampMillis")?;
+    Ok(Value::TimestampMillis(millis))
+}
+
+pub fn deserialize_local_timestamp_millis(json: serde_json::Value) -> Result<Value> {
+    let millis = deserialize_millis(json, "LocalTimestampMillis")?;
+    Ok(Value::LocalTimestampMillis(millis))
+}
+
+fn deserialize_micros(json: serde_json::Value, tp: &str) -> Result<i64> {
+    match json {
+        serde_json::Value::String(str) => {
+            let date_time = deserialize_datetime(&str)?;
+            Ok(date_time.timestamp_micros())
+        }
+        serde_json::Value::Number(n) => {
+            let timestamp = i64::from_str(&format!("{n}"))?;
+            Ok(timestamp)
+        }
+        v => bail!("Types don't match: {tp}, {v}"),
     }
 }
 
 pub fn deserialize_timestamp_micros(json: serde_json::Value) -> Result<Value> {
-    match json {
-        serde_json::Value::String(str) => {
-            let date_time = deserialize_datetime(&str)?;
-            Ok(Value::TimestampMicros(date_time.timestamp_micros()))
-        }
-        serde_json::Value::Number(n) => {
-            let timestamp = i64::from_str(&format!("{n}"))?;
-            Ok(Value::TimestampMicros(timestamp))
-        }
-        v => bail!("Types don't match: TimestampMillis, {v}"),
-    }
+    let micros = deserialize_micros(json, "TimestampMillis")?;
+    Ok(Value::TimestampMicros(micros))
+}
+
+pub fn deserialize_local_timestamp_micros(json: serde_json::Value) -> Result<Value> {
+    let micros = deserialize_micros(json, "LocalTimestampMicros")?;
+    Ok(Value::LocalTimestampMicros(micros))
 }
 
 #[cfg(test)]
@@ -158,6 +178,18 @@ mod test {
     }
 
     #[test]
+    fn test_local_timestamp_millis() {
+        assert_eq!(
+            test(
+                &json!({"type":"long", "logicalType":"local-timestamp-millis"}),
+                json!("2001-02-03T12:34:56.789Z"),
+            )
+            .unwrap(),
+            Value::LocalTimestampMillis(981203696789)
+        )
+    }
+
+    #[test]
     fn test_timestamp_micros() {
         assert_eq!(
             test(
@@ -166,6 +198,18 @@ mod test {
             )
             .unwrap(),
             Value::TimestampMicros(981203696789000)
+        );
+    }
+
+    #[test]
+    fn test_local_timestamp_micros() {
+        assert_eq!(
+            test(
+                &json!({"type":"long", "logicalType":"local-timestamp-micros"}),
+                json!("2001-02-03T12:34:56.789Z"),
+            )
+            .unwrap(),
+            Value::LocalTimestampMicros(981203696789000)
         );
     }
 }
