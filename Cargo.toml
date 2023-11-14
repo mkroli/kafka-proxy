@@ -57,7 +57,7 @@ num-traits = "0.2"
 num-bigint = "0.4"
 bigdecimal = "0.4"
 schema_registry_converter = { version = "4", features = ["avro"] }
-rdkafka = { version = "0.34", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
+rdkafka = { version = "0.36", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
 async-trait = "0.1"
 futures = "0.3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "sync", "fs", "net"] }
@@ -66,9 +66,10 @@ hyper = "0.14"
 axum = { version = "0.6", features = ["headers", "http1", "http2"] }
 coap = { version = "0.13", optional = true }
 coap-lite = { version = "0.11", optional = true }
-opentelemetry = "0.20"
+opentelemetry = "0.21"
+opentelemetry_sdk = "0.21"
 prometheus = "0.13"
-opentelemetry-prometheus = "0.13"
+opentelemetry-prometheus = "0.14"
 posixmq = { version = "1", optional = true }
 nng = { version = "1", optional = true }
 

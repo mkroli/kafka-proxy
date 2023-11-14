@@ -26,9 +26,9 @@ use axum::routing::get;
 use axum::{Router, TypedHeader};
 use hyper::Server;
 use opentelemetry::metrics::{Counter, Meter};
-use opentelemetry::sdk::metrics::MeterProvider;
-use opentelemetry::sdk::Resource;
 use opentelemetry::{metrics::MeterProvider as _, KeyValue};
+use opentelemetry_sdk::metrics::MeterProvider;
+use opentelemetry_sdk::Resource;
 use prometheus::{Encoder, Registry, TextEncoder};
 use tokio::sync::broadcast::Receiver;
 
