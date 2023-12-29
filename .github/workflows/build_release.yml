@@ -135,3 +135,14 @@ jobs:
             --amend ghcr.io/mkroli/kafka-proxy:latest-armv7-linux
           docker manifest push \
             ghcr.io/mkroli/kafka-proxy:latest
+
+  ghcr_cleanup:
+    name: GHCR Cleanup
+    needs: container_manifest
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all containers from repository without tags
+        uses: camargo/delete-untagged-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
