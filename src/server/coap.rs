@@ -51,13 +51,10 @@ impl Server for CoapServer {
                     _ => ResponseType::MethodNotAllowed,
                 };
 
-                match request.response {
-                    Some(ref mut message) => {
-                        message.set_status(response_status);
-                        message.message.payload = Vec::new();
-                    }
-                    _ => {}
-                };
+                if let Some(ref mut message) = request.response {
+                    message.set_status(response_status);
+                    message.message.payload = Vec::new();
+                }
 
                 request
             }
