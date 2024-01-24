@@ -15,7 +15,7 @@
  */
 
 use clap::Parser;
-use coap::CoAPClient;
+use coap::client::UdpCoAPClient;
 use coap_lite::ResponseType;
 
 #[derive(Parser, Debug)]
@@ -30,11 +30,12 @@ struct Cli {
     message: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
     let data = Vec::from(cli.message);
     for _ in 0..cli.iterations {
-        let response = CoAPClient::post(&cli.url, data.clone()).unwrap();
+        let response = UdpCoAPClient::post(&cli.url, data.clone()).await.unwrap();
         if response.get_status() != &ResponseType::Changed {
             log::error!("response was {:?}", &response)
         }
