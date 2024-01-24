@@ -18,7 +18,8 @@ use crate::cli::CoapServer;
 use crate::kafka::KafkaProducer;
 use crate::server::Server;
 use async_trait::async_trait;
-use coap_lite::{RequestType, ResponseType};
+use coap_lite::{CoapRequest, RequestType, ResponseType};
+use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc::Sender;
@@ -32,29 +33,33 @@ impl Server for CoapServer {
         _shutdown_sender: Sender<()>,
     ) -> anyhow::Result<()> {
         let kafka_producer = Arc::new(kafka_producer);
-        let mut server = coap::Server::new(self.address)?;
-        let run = server.run(|request| async {
-            let response_status = match request.get_method() {
-                &RequestType::Post => match request.get_path().as_str() {
-                    "produce" => match kafka_producer.send(&request.message.payload).await {
-                        Ok(()) => ResponseType::Changed,
-                        Err(e) => {
-                            log::warn!("{}", e);
-                            ResponseType::InternalServerError
-                        }
+        let server = coap::Server::new_udp(self.address)?;
+        let run = server.run(move |mut request: Box<CoapRequest<SocketAddr>>| {
+            let kafka_producer = kafka_producer.clone();
+            async move {
+                let response_status = match request.get_method() {
+                    &RequestType::Post => match request.get_path().as_str() {
+                        "produce" => match kafka_producer.send(&request.message.payload).await {
+                            Ok(()) => ResponseType::Changed,
+                            Err(e) => {
+                                log::warn!("{}", e);
+                                ResponseType::InternalServerError
+                            }
+                        },
+                        _ => ResponseType::NotFound,
                     },
-                    _ => ResponseType::NotFound,
-                },
-                _ => ResponseType::MethodNotAllowed,
-            };
+                    _ => ResponseType::MethodNotAllowed,
+                };
 
-            match request.response {
-                Some(mut message) => {
-                    message.set_status(response_status);
-                    message.message.payload = Vec::new();
-                    Some(message)
-                }
-                _ => None,
+                match request.response {
+                    Some(ref mut message) => {
+                        message.set_status(response_status);
+                        message.message.payload = Vec::new();
+                    }
+                    _ => {}
+                };
+
+                request
             }
         });
         tokio::select! {
