@@ -25,9 +25,10 @@ use axum::routing::get;
 use axum::Router;
 use axum_extra::headers::ContentType;
 use axum_extra::TypedHeader;
+use opentelemetry::metrics::MeterProvider;
 use opentelemetry::metrics::{Counter, Meter};
-use opentelemetry::{metrics::MeterProvider as _, KeyValue};
-use opentelemetry_sdk::metrics::MeterProvider;
+use opentelemetry::KeyValue;
+use opentelemetry_sdk::metrics::SdkMeterProvider;
 use opentelemetry_sdk::Resource;
 use prometheus::{Encoder, Registry, TextEncoder};
 use tokio::net::TcpListener;
@@ -37,7 +38,7 @@ pub const COLLECT_PERIOD_MS: u64 = 10000;
 
 pub struct Metrics {
     registry: Registry,
-    provider: MeterProvider,
+    provider: SdkMeterProvider,
 }
 
 impl IntoResponse for &Metrics {
@@ -63,7 +64,7 @@ impl Metrics {
         let exporter = opentelemetry_prometheus::exporter()
             .with_registry(registry.clone())
             .build()?;
-        let provider = MeterProvider::builder()
+        let provider = SdkMeterProvider::builder()
             .with_reader(exporter)
             .with_resource(Resource::new([KeyValue::new(
                 "service.name",
