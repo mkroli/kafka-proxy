@@ -30,9 +30,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
       - name: Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+        uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Dependencies
         run: |
           sudo apt-get install -y libsasl2-dev
@@ -42,7 +40,4 @@ jobs:
           git config --global user.name "Michael Krolikowski"
           git config --global user.email "mkroli@yahoo.de"
       - name: Release
-        uses: actions-rs/cargo@v1
-        with:
-          command: release
-          args: -x --no-confirm --no-publish ${{ inputs.level }}
+        run: cargo release -x --no-confirm --no-publish ${{ inputs.level }}

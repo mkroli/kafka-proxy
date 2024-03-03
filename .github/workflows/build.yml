@@ -26,24 +26,13 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
+      uses: actions-rust-lang/setup-rust-toolchain@v1
     - name: Test
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --locked --all-features
+      run: cargo test --locked --all-features
     - name: Format
-      uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --check
+      uses: actions-rust-lang/rustfmt@v1
     - name: Clippy
-      uses: actions-rs/cargo@v1
-      with:
-        command: clippy
-        args: -- -Dwarnings
+      run: cargo clippy -- -Dwarnings
     - name: Completions
       run: |
         cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
