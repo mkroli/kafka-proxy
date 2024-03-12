@@ -64,17 +64,17 @@ jobs:
       - name: Build
         run: |
           ${{ matrix.cargo }} build --release --locked --target ${{ matrix.target }}
-          mv target/${{ matrix.target }}/release/kafka-proxy kafka-proxy_${{ matrix.suffix }}
+          mv target/${{ matrix.target }}/release/${{ github.event.repository.name }} ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Store Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: kafka-proxy_${{ matrix.suffix }}
-          path: kafka-proxy_${{ matrix.suffix }}
+          name: ${{ github.event.repository.name }}_${{ matrix.suffix }}
+          path: ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: kafka-proxy_${{ matrix.suffix }}
+          files: ${{ github.event.repository.name }}_${{ matrix.suffix }}
 
   container:
     name: Container Images (${{ matrix.arch }})
@@ -109,20 +109,20 @@ jobs:
       - name: Retrieve Artifacts
         uses: actions/download-artifact@v3
         with:
-          name: kafka-proxy_${{ matrix.suffix }}
+          name: ${{ github.event.repository.name }}_${{ matrix.suffix }}
           path: build/
       - name: Prepare Dockerfile
         run: |
-          mv build/kafka-proxy_${{ matrix.suffix }} build/kafka-proxy
-          chmod 0755 build/kafka-proxy
+          mv build/${{ github.event.repository.name }}_${{ matrix.suffix }} build/${{ github.event.repository.name }}
+          chmod 0755 build/${{ github.event.repository.name }}
           echo 'FROM scratch' > build/Dockerfile
-          echo 'ADD kafka-proxy /kafka-proxy' >> build/Dockerfile
-          echo 'ENTRYPOINT ["/kafka-proxy"]' >> build/Dockerfile
+          echo 'ADD ${{ github.event.repository.name }} /${{ github.event.repository.name }}' >> build/Dockerfile
+          echo 'ENTRYPOINT ["/${{ github.event.repository.name }}"]' >> build/Dockerfile
       - name: Docker meta
         id: docker-meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/mkroli/kafka-proxy
+          images: ghcr.io/${{ github.repository }}
           flavor: |
             latest=false
             suffix=-${{ matrix.short_suffix }},onlatest=true
@@ -152,7 +152,7 @@ jobs:
         id: docker-meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/mkroli/kafka-proxy
+          images: ghcr.io/${{ github.repository }}
           flavor: |
             latest=false
       - name: Create and push tag manifest
@@ -167,12 +167,12 @@ jobs:
       - name: Create and push tag manifest (latest)
         run: |
           docker manifest create \
-            ghcr.io/mkroli/kafka-proxy:latest \
+            ghcr.io/${{ github.repository }}:latest \
             --amend ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
             --amend ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
             --amend ${{ steps.docker-meta.outputs.tags }}-armv7-linux
           docker manifest push \
-            ghcr.io/mkroli/kafka-proxy:latest
+            ghcr.io/${{ github.repository }}:latest
 
   ghcr_cleanup:
     name: GHCR Cleanup
