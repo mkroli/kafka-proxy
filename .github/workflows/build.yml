@@ -3,6 +3,7 @@ name: Build
 on:
   push:
     branches: [ "main" ]
+    tags: [ '*' ]
   pull_request:
     branches: [ "main" ]
 
@@ -10,30 +11,181 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - name: Toolchain
-      uses: actions-rust-lang/setup-rust-toolchain@v1
-    - name: Test
-      run: cargo test --locked --all-features
-    - name: Format
-      uses: actions-rust-lang/rustfmt@v1
-    - name: Clippy
-      run: cargo clippy -- -Dwarnings
-    - name: Completions
-      run: |
-        cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
-        git diff --no-ext-diff --exit-code -- completions/
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Build
+        run: cargo build --locked --all-features
+      - name: Test
+        run: cargo test --locked --all-features
+      - name: Format
+        uses: actions-rust-lang/rustfmt@v1
+      - name: Clippy
+        run: cargo clippy -- -Dwarnings
+      - name: Completions
+        run: |
+          cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
+          git diff --no-ext-diff --exit-code -- completions/
+
+  build:
+    name: Build Artifact (${{ matrix.target }})
+    needs: check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            suffix: x86_64-linux-gnu
+            cargo: cargo
+          - target: x86_64-unknown-linux-musl
+            suffix: x86_64-linux-musl
+            cargo: cross
+          - target: aarch64-unknown-linux-musl
+            suffix: aarch64-linux-musl
+            cargo: cross
+          - target: arm-unknown-linux-musleabihf
+            suffix: arm-linux-musleabihf
+            cargo: cross
+          - target: armv7-unknown-linux-musleabihf
+            suffix: armv7-linux-musleabihf
+            cargo: cross
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+      - name: Cross Installation
+        run: cargo install cross
+        if: ${{ matrix.cargo == 'cross' }}
+      - name: Build
+        run: |
+          ${{ matrix.cargo }} build --release --locked --target ${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/kafka-proxy kafka-proxy_${{ matrix.suffix }}
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: kafka-proxy_${{ matrix.suffix }}
+          path: kafka-proxy_${{ matrix.suffix }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: kafka-proxy_${{ matrix.suffix }}
+
+  container:
+    name: Container Images (${{ matrix.arch }})
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: linux/amd64
+            suffix: x86_64-linux-musl
+            short_suffix: x86_64-linux
+          - arch: linux/aarch64
+            suffix: aarch64-linux-musl
+            short_suffix: aarch64-linux
+          - arch: linux/arm/v6
+            suffix: arm-linux-musleabihf
+            short_suffix: armv6-linux
+          - arch: linux/arm/v7
+            suffix: armv7-linux-musleabihf
+            short_suffix: armv7-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup qemu
+        uses: docker/setup-qemu-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: GitHub Container Registry Login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Retrieve Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: kafka-proxy_${{ matrix.suffix }}
+          path: build/
+      - name: Prepare Dockerfile
+        run: |
+          mv build/kafka-proxy_${{ matrix.suffix }} build/kafka-proxy
+          chmod 0755 build/kafka-proxy
+          echo 'FROM scratch' > build/Dockerfile
+          echo 'ADD kafka-proxy /kafka-proxy' >> build/Dockerfile
+          echo 'ENTRYPOINT ["/kafka-proxy"]' >> build/Dockerfile
+      - name: Docker meta
+        id: docker-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/mkroli/kafka-proxy
+          flavor: |
+            latest=false
+            suffix=-${{ matrix.short_suffix }},onlatest=true
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: build
+          platforms: ${{ matrix.arch }}
+          push: true
+          tags: ${{ steps.docker-meta.outputs.tags }}
+
+  container_manifest:
+    name: Container Manifest
+    needs: container
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: GitHub Container Registry Login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: docker-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/mkroli/kafka-proxy
+          flavor: |
+            latest=false
+      - name: Create and push tag manifest
+        run: |
+          docker manifest create \
+            ${{ steps.docker-meta.outputs.tags }} \
+            --amend ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
+            --amend ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
+            --amend ${{ steps.docker-meta.outputs.tags }}-armv7-linux
+          docker manifest push \
+            ${{ steps.docker-meta.outputs.tags }}
+      - name: Create and push tag manifest (latest)
+        run: |
+          docker manifest create \
+            ghcr.io/mkroli/kafka-proxy:latest \
+            --amend ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
+            --amend ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
+            --amend ${{ steps.docker-meta.outputs.tags }}-armv7-linux
+          docker manifest push \
+            ghcr.io/mkroli/kafka-proxy:latest
+
+  ghcr_cleanup:
+    name: GHCR Cleanup
+    needs: container_manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all containers from repository without tags
+        uses: camargo/delete-untagged-action@v1
+        with:
+         github-token: ${{ secrets.GITHUB_TOKEN }}
