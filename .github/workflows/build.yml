@@ -48,9 +48,6 @@ jobs:
           - target: aarch64-unknown-linux-musl
             suffix: aarch64-linux-musl
             cargo: cross
-          - target: arm-unknown-linux-musleabihf
-            suffix: arm-linux-musleabihf
-            cargo: cross
           - target: armv7-unknown-linux-musleabihf
             suffix: armv7-linux-musleabihf
             cargo: cross
@@ -93,8 +90,6 @@ jobs:
           - arch: linux/aarch64
             suffix: aarch64-linux-musl
             short_suffix: aarch64-linux
-          - arch: linux/arm/v6
-            suffix: arm-linux-musleabihf
             short_suffix: armv6-linux
           - arch: linux/arm/v7
             suffix: armv7-linux-musleabihf
