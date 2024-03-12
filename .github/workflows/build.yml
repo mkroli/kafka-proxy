@@ -90,7 +90,6 @@ jobs:
           - arch: linux/aarch64
             suffix: aarch64-linux-musl
             short_suffix: aarch64-linux
-            short_suffix: armv6-linux
           - arch: linux/arm/v7
             suffix: armv7-linux-musleabihf
             short_suffix: armv7-linux
