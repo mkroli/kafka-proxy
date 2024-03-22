@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Build
@@ -53,7 +53,7 @@ jobs:
             cargo: cross
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -66,12 +66,12 @@ jobs:
           ${{ matrix.cargo }} build --release --locked --target ${{ matrix.target }}
           mv target/${{ matrix.target }}/release/${{ github.event.repository.name }} ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Store Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}_${{ matrix.suffix }}
           path: ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ github.event.repository.name }}_${{ matrix.suffix }}
@@ -95,19 +95,19 @@ jobs:
             short_suffix: armv7-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup qemu
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: GitHub Container Registry Login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Retrieve Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.repository.name }}_${{ matrix.suffix }}
           path: build/
@@ -127,7 +127,7 @@ jobs:
             latest=false
             suffix=-${{ matrix.short_suffix }},onlatest=true
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: build
           platforms: ${{ matrix.arch }}
@@ -141,9 +141,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: GitHub Container Registry Login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}

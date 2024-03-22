@@ -78,7 +78,7 @@ nng = { version = "1", optional = true }
 openssl-src = { version = "300", features = ["force-engine"] }
 
 [dev-dependencies]
-reqwest = "0.11"
+reqwest = "0.12"
 
 [features]
 default = ["coap", "posixmq", "nng"]
