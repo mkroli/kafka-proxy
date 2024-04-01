@@ -65,7 +65,7 @@ tokio-stream = { version = "0.1", features = ["sync", "io-util"] }
 hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
 axum = { version = "0.7", default-features = false, features = ["tokio", "http1", "http2"] }
 axum-extra = { version = "0.9", default-features = false, features = ["typed-header"] }
-coap = { version = "0.14", optional = true }
+coap = { version = "0.15", optional = true }
 coap-lite = { version = "0.11", optional = true }
 opentelemetry = "0.22"
 opentelemetry_sdk = "0.22"
