@@ -133,6 +133,7 @@ jobs:
           platforms: ${{ matrix.arch }}
           push: true
           tags: ${{ steps.docker-meta.outputs.tags }}
+          provenance: false
 
   container_manifest:
     name: Container Manifest
@@ -156,23 +157,20 @@ jobs:
           flavor: |
             latest=false
       - name: Create and push tag manifest
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-          docker manifest create \
-            ${{ steps.docker-meta.outputs.tags }} \
-            --amend ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
-            --amend ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
-            --amend ${{ steps.docker-meta.outputs.tags }}-armv7-linux
-          docker manifest push \
-            ${{ steps.docker-meta.outputs.tags }}
+          docker buildx imagetools create \
+            -t ${{ steps.docker-meta.outputs.tags }} \
+            ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
+            ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
+            ${{ steps.docker-meta.outputs.tags }}-armv7-linux
       - name: Create and push tag manifest (latest)
         run: |
-          docker manifest create \
-            ghcr.io/${{ github.repository }}:latest \
-            --amend ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
-            --amend ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
-            --amend ${{ steps.docker-meta.outputs.tags }}-armv7-linux
-          docker manifest push \
-            ghcr.io/${{ github.repository }}:latest
+          docker buildx imagetools create \
+            -t ghcr.io/${{ github.repository }}:latest \
+            ${{ steps.docker-meta.outputs.tags }}-x86_64-linux \
+            ${{ steps.docker-meta.outputs.tags }}-aarch64-linux \
+            ${{ steps.docker-meta.outputs.tags }}-armv7-linux
 
   ghcr_cleanup:
     name: GHCR Cleanup
