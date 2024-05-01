@@ -15,8 +15,7 @@
  */
 
 use clap::Parser;
-use coap::client::UdpCoAPClient;
-use coap_lite::ResponseType;
+use coap::{client::UdpCoAPClient, request::Status};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -36,7 +35,7 @@ async fn main() {
     let data = Vec::from(cli.message);
     for _ in 0..cli.iterations {
         let response = UdpCoAPClient::post(&cli.url, data.clone()).await.unwrap();
-        if response.get_status() != &ResponseType::Changed {
+        if response.get_status() != &Status::Changed {
             log::error!("response was {:?}", &response)
         }
     }

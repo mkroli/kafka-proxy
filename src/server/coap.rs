@@ -18,7 +18,7 @@ use crate::cli::CoapServer;
 use crate::kafka::KafkaProducer;
 use crate::server::Server;
 use async_trait::async_trait;
-use coap_lite::{CoapRequest, RequestType, ResponseType};
+use coap::request::{CoapRequest, Method, Status};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::broadcast::Receiver;
@@ -38,17 +38,17 @@ impl Server for CoapServer {
             let kafka_producer = kafka_producer.clone();
             async move {
                 let response_status = match request.get_method() {
-                    &RequestType::Post => match request.get_path().as_str() {
+                    &Method::Post => match request.get_path().as_str() {
                         "produce" => match kafka_producer.send(&request.message.payload).await {
-                            Ok(()) => ResponseType::Changed,
+                            Ok(()) => Status::Changed,
                             Err(e) => {
                                 log::warn!("{}", e);
-                                ResponseType::InternalServerError
+                                Status::InternalServerError
                             }
                         },
-                        _ => ResponseType::NotFound,
+                        _ => Status::NotFound,
                     },
-                    _ => ResponseType::MethodNotAllowed,
+                    _ => Status::MethodNotAllowed,
                 };
 
                 if let Some(ref mut message) = request.response {
