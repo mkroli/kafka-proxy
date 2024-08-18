@@ -16,16 +16,17 @@
 
 use anyhow::bail;
 use anyhow::Result;
+use apache_avro::schema::MapSchema;
 use apache_avro::types::Value;
-use apache_avro::Schema;
 use std::collections::HashMap;
 
-pub fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
+pub fn deserialize(schema: &MapSchema, json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Object(m) => {
+            let value_schema = schema.types.as_ref();
             let mut map = HashMap::with_capacity(m.len());
             for (key, value) in m {
-                let value = crate::kafka::serde::deserialize(schema, value)?;
+                let value = crate::kafka::serde::deserialize(value_schema, value)?;
                 map.insert(key, value);
             }
             Ok(Value::Map(map))

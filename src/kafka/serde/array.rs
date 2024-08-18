@@ -16,15 +16,16 @@
 
 use anyhow::bail;
 use anyhow::Result;
+use apache_avro::schema::ArraySchema;
 use apache_avro::types::Value;
-use apache_avro::Schema;
 
-pub fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
+pub fn deserialize(schema: &ArraySchema, json: serde_json::Value) -> Result<Value> {
     match json {
         serde_json::Value::Array(arr) => {
+            let item_schema = schema.items.as_ref();
             let mut result = Vec::with_capacity(arr.len());
             for v in arr {
-                let val = crate::kafka::serde::deserialize(schema, v)?;
+                let val = crate::kafka::serde::deserialize(item_schema, v)?;
                 result.push(val);
             }
             Ok(Value::Array(result))

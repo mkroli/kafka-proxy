@@ -72,10 +72,23 @@ pub fn deserialize_decimal(scale: u32, json: serde_json::Value) -> Result<Value>
     }
 }
 
+pub fn deserialize_bigdecimal(json: serde_json::Value) -> Result<Value> {
+    match json {
+        serde_json::Value::Number(n) => {
+            let dec = apache_avro::BigDecimal::from_str(&format!("{n}"))?;
+            Ok(Value::BigDecimal(dec))
+        }
+        v => bail!("Types don't match: Decimal, {v}"),
+    }
+}
+
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+
     use crate::kafka::serde::tests::test;
     use apache_avro::types::Value;
+    use apache_avro::BigDecimal;
     use apache_avro::Decimal;
     use serde_json::json;
 
@@ -114,6 +127,18 @@ mod test {
             )
             .unwrap(),
             Value::Decimal(Decimal::from(vec!(0x07, 0x5B, 0xCD, 0x15)))
+        );
+    }
+
+    #[test]
+    fn test_bigdecimal() {
+        assert_eq!(
+            test(
+                &json!({"type": "bytes", "logicalType": "big-decimal"}),
+                json!(123.456789),
+            )
+            .unwrap(),
+            Value::BigDecimal(BigDecimal::from_str("123.456789").unwrap())
         );
     }
 }
