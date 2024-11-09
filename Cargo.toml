@@ -44,7 +44,7 @@ codegen-units = 1
 lazy_static = "1"
 anyhow = "1"
 log = "0.4"
-fern = "0.6"
+fern = "0.7"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 clap_complete = "4"
@@ -65,7 +65,7 @@ tokio-stream = { version = "0.1", features = ["sync", "io-util"] }
 hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
 axum = { version = "0.7", default-features = false, features = ["tokio", "http1", "http2"] }
 axum-extra = { version = "0.9", default-features = false, features = ["typed-header"] }
-coap = { version = "0.18", optional = true }
+coap = { version = "0.19", optional = true }
 opentelemetry = "0.24"
 opentelemetry_sdk = "0.24"
 prometheus = "0.13"
