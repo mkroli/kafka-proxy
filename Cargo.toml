@@ -67,7 +67,7 @@ axum = { version = "0.7", default-features = false, features = ["tokio", "http1"
 axum-extra = { version = "0.9", default-features = false, features = ["typed-header"] }
 coap = { version = "0.19", optional = true }
 opentelemetry = "0.24"
-opentelemetry_sdk = "0.24"
+opentelemetry_sdk = "0.26"
 prometheus = "0.13"
 opentelemetry-prometheus = "0.17"
 posixmq = { version = "1", optional = true }
