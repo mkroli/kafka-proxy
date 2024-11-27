@@ -1488,7 +1488,7 @@ dependencies = [
 
 [[package]]
 name = "kafka-proxy"
-version = "0.17.14"
+version = "0.17.15"
 dependencies = [
  "anyhow",
  "apache-avro",
