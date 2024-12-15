@@ -63,7 +63,7 @@ fn broker_callback<T, C: Fn(&dyn AsyncInstrument<T>, &Broker, &[KeyValue])>(
                     "nodeid" => broker.nodeid.to_string(),
                     "nodename" => broker.nodename.clone()
                 ];
-                callback(observer, &broker, attrs)
+                callback(observer, broker, attrs)
             }
         }
         Err(e) => log::warn!("Failed to retrieve statistics: {e}"),
