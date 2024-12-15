@@ -77,11 +77,11 @@ impl KafkaProducer {
         let producer_requests_counter = meter
             .u64_counter("kafkaproxy.requests")
             .with_description("Number of requests")
-            .init();
+            .build();
         let producer_sent_counter = meter
             .u64_counter("kafkaproxy.produced")
             .with_description("Number of produced Kafka Records")
-            .init();
+            .build();
 
         Ok(KafkaProducer {
             topic: cfg.topic,
