@@ -66,10 +66,10 @@ hyper = { version = "1", default-features = false, features = ["server", "http1"
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1", "http2"] }
 axum-extra = { version = "0.10", default-features = false, features = ["typed-header"] }
 coap = { version = "0.19", optional = true }
-opentelemetry = "0.27"
-opentelemetry_sdk = "0.27"
+opentelemetry = "0.28"
+opentelemetry_sdk = "0.28"
 prometheus = "0.13"
-opentelemetry-prometheus = "0.27"
+opentelemetry-prometheus = "0.28"
 posixmq = { version = "1", optional = true }
 nng = { version = "1", optional = true }
 

@@ -66,10 +66,11 @@ impl Metrics {
             .build()?;
         let provider = SdkMeterProvider::builder()
             .with_reader(exporter)
-            .with_resource(Resource::new([KeyValue::new(
-                "service.name",
-                env!("CARGO_PKG_NAME"),
-            )]))
+            .with_resource(
+                Resource::builder()
+                    .with_service_name(env!("CARGO_PKG_NAME"))
+                    .build(),
+            )
             .build();
         Ok(Metrics { registry, provider })
     }
