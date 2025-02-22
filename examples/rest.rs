@@ -15,8 +15,8 @@
  */
 
 use clap::Parser;
-use futures::stream::iter;
 use futures::StreamExt;
+use futures::stream::iter;
 use reqwest::StatusCode;
 
 #[derive(Parser, Debug)]

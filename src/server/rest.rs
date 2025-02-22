@@ -18,19 +18,19 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use async_trait::async_trait;
+use axum::Router;
 use axum::body::Bytes;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::routing::post;
-use axum::Router;
 use rdkafka::message::ToBytes;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc::Sender;
 
+use crate::Server;
 use crate::cli::RestServer;
 use crate::kafka::KafkaProducer;
-use crate::Server;
 
 async fn produce_handler(
     State(kafka_producer): State<Arc<KafkaProducer>>,

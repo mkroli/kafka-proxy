@@ -15,7 +15,7 @@
  */
 
 use crate::kafka::serde::deserialize_json;
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use apache_avro::Schema;
 use schema_registry_converter::async_impl::schema_registry;
 use schema_registry_converter::async_impl::schema_registry::SrSettings;

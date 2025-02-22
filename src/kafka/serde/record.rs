@@ -15,7 +15,7 @@
  */
 
 use anyhow::Result;
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use apache_avro::schema::RecordField;
 use apache_avro::types::Value;
 

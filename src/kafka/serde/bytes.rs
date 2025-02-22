@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-use anyhow::bail;
 use anyhow::Result;
+use anyhow::bail;
 use apache_avro::types::Value;
 use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
-use base64::{alphabet, Engine};
+use base64::{Engine, alphabet};
 use uuid::Uuid;
 
 const ENGINE: GeneralPurpose =

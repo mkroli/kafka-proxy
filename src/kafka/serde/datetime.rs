@@ -15,7 +15,7 @@
  */
 
 use anyhow::Result;
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use apache_avro::types::Value;
 use chrono::{DateTime, FixedOffset, NaiveDate, NaiveTime};
 use std::str::FromStr;

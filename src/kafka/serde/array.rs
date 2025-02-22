@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use anyhow::bail;
 use anyhow::Result;
+use anyhow::bail;
 use apache_avro::schema::ArraySchema;
 use apache_avro::types::Value;
 

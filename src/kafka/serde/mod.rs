@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-use anyhow::{bail, Result};
-use apache_avro::types::Value;
+use anyhow::{Result, bail};
 use apache_avro::Schema;
+use apache_avro::types::Value;
 
 mod array;
 mod boolean;
@@ -70,8 +70,8 @@ pub fn deserialize_json(schema: &Schema, json: serde_json::Value) -> Result<Valu
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
-    use apache_avro::types::Value;
     use apache_avro::Schema;
+    use apache_avro::types::Value;
     use serde_json::json;
 
     use crate::kafka::serde::deserialize_json;

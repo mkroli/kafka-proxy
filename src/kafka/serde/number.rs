@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-use anyhow::bail;
 use anyhow::Result;
+use anyhow::bail;
 use apache_avro::types::Value;
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
@@ -87,9 +87,9 @@ mod test {
     use std::str::FromStr;
 
     use crate::kafka::serde::tests::test;
-    use apache_avro::types::Value;
     use apache_avro::BigDecimal;
     use apache_avro::Decimal;
+    use apache_avro::types::Value;
     use serde_json::json;
 
     #[test]

@@ -17,8 +17,8 @@
 use std::sync::{Arc, RwLock};
 
 use anyhow::Result;
-use opentelemetry::metrics::{AsyncInstrument, Meter};
 use opentelemetry::KeyValue;
+use opentelemetry::metrics::{AsyncInstrument, Meter};
 use rdkafka::statistics::Broker;
 use rdkafka::{ClientContext, Statistics};
 
@@ -42,7 +42,7 @@ impl ClientContext for TelemetryClientContext {
 fn from_stats<T, C: Fn(&Statistics) -> T>(
     latest: &Arc<RwLock<Statistics>>,
     value_from_stats: C,
-) -> impl Fn(&dyn AsyncInstrument<T>) {
+) -> impl Fn(&dyn AsyncInstrument<T>) + use<T, C> {
     let l = latest.clone();
     move |observer| match l.read() {
         Ok(stats) => observer.observe(value_from_stats(&stats), &[]),
@@ -53,7 +53,7 @@ fn from_stats<T, C: Fn(&Statistics) -> T>(
 fn broker_callback<T, C: Fn(&dyn AsyncInstrument<T>, &Broker, &[KeyValue])>(
     latest: &Arc<RwLock<Statistics>>,
     callback: C,
-) -> impl Fn(&dyn AsyncInstrument<T>) {
+) -> impl Fn(&dyn AsyncInstrument<T>) + use<T, C> {
     let l = latest.clone();
     move |observer| match l.read() {
         Ok(stats) => {
@@ -73,7 +73,7 @@ fn broker_callback<T, C: Fn(&dyn AsyncInstrument<T>, &Broker, &[KeyValue])>(
 fn from_broker<T, C: Fn(&Broker) -> T>(
     latest: &Arc<RwLock<Statistics>>,
     value_from_broker: C,
-) -> impl Fn(&dyn AsyncInstrument<T>) {
+) -> impl Fn(&dyn AsyncInstrument<T>) + use<T, C> {
     broker_callback(latest, move |observer, broker, attrs| {
         observer.observe(value_from_broker(broker), attrs);
     })

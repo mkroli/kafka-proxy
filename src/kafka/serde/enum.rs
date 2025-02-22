@@ -15,7 +15,7 @@
  */
 
 use anyhow::Result;
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use apache_avro::types::Value;
 use std::str::FromStr;
 

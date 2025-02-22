@@ -18,8 +18,8 @@ use std::time::Duration;
 
 use anyhow::Result;
 use base64::Engine;
-use opentelemetry::metrics::{Counter, Meter};
 use opentelemetry::KeyValue;
+use opentelemetry::metrics::{Counter, Meter};
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
 use tokio::fs::{File, OpenOptions};
@@ -30,7 +30,7 @@ use crate::cli::Producer;
 use crate::kafka::schema_registry::SchemaRegistry;
 use crate::kafka::telemetry_client_context::TelemetryClientContext;
 use crate::metrics::counter_inc;
-use crate::{kv, ENGINE};
+use crate::{ENGINE, kv};
 
 const TIMEOUT: Timeout = Timeout::After(Duration::from_millis(3000));
 
