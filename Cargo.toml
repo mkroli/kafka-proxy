@@ -1,6 +1,6 @@
 [package]
 name = "kafka-proxy"
-version = "0.19.1"
+version = "0.19.2"
 edition = "2024"
 description = "Service to proxy from various protocols to Kafka"
 license = "Apache-2.0"
