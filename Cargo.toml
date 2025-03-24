@@ -69,7 +69,7 @@ coap = { version = "0.19", optional = true }
 opentelemetry = "0.28"
 opentelemetry_sdk = "0.28"
 prometheus = "0.13"
-opentelemetry-prometheus = "0.28"
+opentelemetry-prometheus = "0.29"
 posixmq = { version = "1", optional = true }
 nng = { version = "1", optional = true }
 
