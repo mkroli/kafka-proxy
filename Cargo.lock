@@ -540,9 +540,9 @@ dependencies = [
 
 [[package]]
 name = "coap"
-version = "0.19.1"
+version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e91c0f1468cd10f768d878ea5b2d0461c41c47455a1b94c5d521deb1b72539a9"
+checksum = "deacad98f84a6636492b81cac3fade509b1bd4ddb247da7196ff13f5664498ae"
 dependencies = [
  "async-trait",
  "coap-lite",
@@ -565,9 +565,9 @@ dependencies = [
 
 [[package]]
 name = "coap-lite"
-version = "0.11.5"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d72f4fbcb650652c4b7d980390cf8af49a738422ac66718bd516ec3430b83a6"
+checksum = "c03a13714f9ac01bf29ca4c969bdd1ef007174dfd06f703531add1cce2e8368c"
 dependencies = [
  "coap-message 0.2.3",
  "coap-message 0.3.6",
