@@ -65,11 +65,11 @@ tokio-stream = { version = "0.1", features = ["sync", "io-util"] }
 hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1", "http2"] }
 axum-extra = { version = "0.10", default-features = false, features = ["typed-header"] }
-coap = { version = "0.19", optional = true }
-opentelemetry = "0.28"
-opentelemetry_sdk = "0.28"
+coap = { version = "0.20", optional = true }
+opentelemetry = "0.29"
+opentelemetry_sdk = "0.29"
 prometheus = "0.13"
-opentelemetry-prometheus = "0.28"
+opentelemetry-prometheus = "0.29"
 posixmq = { version = "1", optional = true }
 nng = { version = "1", optional = true }
 
