@@ -45,7 +45,7 @@ impl<T> Deref for ListenerCleanup<T> {
 impl<T> Drop for ListenerCleanup<T> {
     fn drop(&mut self) {
         if let Err(e) = std::fs::remove_file(&self.path) {
-            log::error!("{}", e);
+            log::error!("{e}");
         }
     }
 }

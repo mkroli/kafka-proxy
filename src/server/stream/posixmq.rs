@@ -70,7 +70,7 @@ impl MessageStream for PosixMQServer {
         let mq = Arc::new(mq);
         tokio::spawn(async {
             if let Err(e) = mq_loop(mq, snd, shutdown_trigger_receiver).await {
-                log::error!("{}", e);
+                log::error!("{e}");
             }
         });
 

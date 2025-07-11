@@ -120,7 +120,7 @@ async fn run() -> Result<()> {
         match result.await {
             Ok(()) => (),
             Err(e) => {
-                log::error!("{}", e)
+                log::error!("{e}")
             }
         }
     });
@@ -128,7 +128,7 @@ async fn run() -> Result<()> {
     tokio::select! {
         _ = shutdown_recv.recv() => (),
         Ok(Err(e)) = prometheus => {
-            log::error!("{}", e);
+            log::error!("{e}");
         },
         result = shutdown_signal() => result?,
     }
@@ -142,7 +142,7 @@ async fn main() -> Result<()> {
     match run().await {
         Ok(_) => exit(0),
         Err(e) => {
-            log::error!("{}", e);
+            log::error!("{e}");
             exit(1)
         }
     }

@@ -42,7 +42,7 @@ impl Server for CoapServer {
                         "produce" => match kafka_producer.send(&request.message.payload).await {
                             Ok(()) => Status::Changed,
                             Err(e) => {
-                                log::warn!("{}", e);
+                                log::warn!("{e}");
                                 Status::InternalServerError
                             }
                         },

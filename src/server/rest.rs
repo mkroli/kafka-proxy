@@ -39,7 +39,7 @@ async fn produce_handler(
     match kafka_producer.send(bytes.to_bytes()).await {
         Ok(()) => Ok(StatusCode::NO_CONTENT),
         Err(e) => {
-            log::warn!("{}", e);
+            log::warn!("{e}");
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }

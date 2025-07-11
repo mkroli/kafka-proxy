@@ -60,10 +60,10 @@ where
         messages
             .for_each_concurrent(self.concurrency_limit(), |msg| async {
                 match msg {
-                    Err(e) => log::error!("{}", e),
+                    Err(e) => log::error!("{e}"),
                     Ok(msg) => match kafka_producer.send(&msg).await {
                         Ok(()) => (),
-                        Err(e) => log::warn!("{}", e),
+                        Err(e) => log::warn!("{e}"),
                     },
                 };
             })
