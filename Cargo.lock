@@ -134,30 +134,6 @@ checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
 name = "apache-avro"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61a81f4e6304e455a9d52cf8ab667cb2fcf792f2cee2a31c28800901a335ecd5"
-dependencies = [
- "bigdecimal",
- "bon",
- "digest",
- "log",
- "miniz_oxide",
- "num-bigint",
- "quad-rand",
- "rand 0.9.1",
- "regex-lite",
- "serde",
- "serde_bytes",
- "serde_json",
- "strum",
- "strum_macros",
- "thiserror 2.0.12",
- "uuid",
-]
-
-[[package]]
-name = "apache-avro"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce74162d8bc5bc22bd746e1849fb33f2c9416d2ce505d1d65ba49f170a207c90"
@@ -1527,7 +1503,7 @@ name = "kafka-proxy"
 version = "0.19.6"
 dependencies = [
  "anyhow",
- "apache-avro 0.19.0",
+ "apache-avro",
  "async-trait",
  "axum",
  "axum-extra",
@@ -2551,11 +2527,11 @@ dependencies = [
 
 [[package]]
 name = "schema_registry_converter"
-version = "4.4.0"
+version = "4.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc8ff8cc8b3e11b6bb6d1b96e1e7471b226244f9385ce4c9bc4e1f02300e2262"
+checksum = "a88502ff545fb0501e0418f06e58936667b1bf99c15b4c7cdd769a917de6c3a2"
 dependencies = [
- "apache-avro 0.18.0",
+ "apache-avro",
  "byteorder",
  "dashmap",
  "futures",
