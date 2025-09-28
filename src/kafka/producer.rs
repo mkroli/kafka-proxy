@@ -18,33 +18,39 @@ use std::time::Duration;
 
 use anyhow::Result;
 use base64::Engine;
-use opentelemetry::KeyValue;
-use opentelemetry::metrics::{Counter, Meter};
+use prometheus_client::encoding::EncodeLabelSet;
+use prometheus_client::metrics::counter::Counter;
+use prometheus_client::metrics::family::Family;
+use prometheus_client::registry::Registry;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::util::Timeout;
 use tokio::fs::{File, OpenOptions};
 use tokio::io::AsyncWriteExt;
 use tokio::sync::Mutex;
 
+use crate::ENGINE;
 use crate::cli::Producer;
 use crate::kafka::schema_registry::SchemaRegistry;
 use crate::kafka::telemetry_client_context::TelemetryClientContext;
-use crate::metrics::counter_inc;
-use crate::{ENGINE, kv};
 
 const TIMEOUT: Timeout = Timeout::After(Duration::from_millis(3000));
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, EncodeLabelSet)]
+struct RequestLabel {
+    success: bool,
+}
 
 pub struct KafkaProducer {
     topic: String,
     producer: FutureProducer<TelemetryClientContext>,
     schema_registry: Option<SchemaRegistry>,
     dead_letters: Option<Mutex<File>>,
-    producer_requests_counter: Counter<u64>,
-    producer_sent_counter: Counter<u64>,
+    producer_requests_counter: Family<RequestLabel, Counter>,
+    producer_sent_counter: Counter,
 }
 
 impl KafkaProducer {
-    pub async fn new(cfg: Producer, meter: &Meter) -> Result<KafkaProducer> {
+    pub async fn new(cfg: Producer, registry: &mut Registry) -> Result<KafkaProducer> {
         let client_config = cfg.client_config(vec![
             ("client.id", "kafka-proxy"),
             ("bootstrap.servers", &cfg.bootstrap_server),
@@ -53,7 +59,10 @@ impl KafkaProducer {
                 &crate::metrics::COLLECT_PERIOD_MS.to_string(),
             ),
         ]);
-        let context = TelemetryClientContext::new(meter)?;
+        let context = TelemetryClientContext::new()?;
+        registry
+            .sub_registry_with_prefix("kafka_producer")
+            .register_collector(Box::new(context.clone()));
         let producer: FutureProducer<TelemetryClientContext, _> =
             client_config.create_with_context(context)?;
 
@@ -74,14 +83,18 @@ impl KafkaProducer {
             }
         };
 
-        let producer_requests_counter = meter
-            .u64_counter("kafkaproxy.requests")
-            .with_description("Number of requests")
-            .build();
-        let producer_sent_counter = meter
-            .u64_counter("kafkaproxy.produced")
-            .with_description("Number of produced Kafka Records")
-            .build();
+        let producer_requests_counter = Family::default();
+        registry.register(
+            "requests",
+            "Number of requests",
+            producer_requests_counter.clone(),
+        );
+        let producer_sent_counter = Counter::default();
+        registry.register(
+            "produced",
+            "Number of produced Kafka Records",
+            producer_sent_counter.clone(),
+        );
 
         Ok(KafkaProducer {
             topic: cfg.topic,
@@ -124,12 +137,16 @@ impl KafkaProducer {
     pub async fn send(&self, payload: &[u8]) -> Result<()> {
         match self.produce(payload).await {
             Ok(()) => {
-                counter_inc(&self.producer_requests_counter, kv!["success" => true]);
-                counter_inc(&self.producer_sent_counter, kv![]);
+                self.producer_requests_counter
+                    .get_or_create(&RequestLabel { success: true })
+                    .inc();
+                self.producer_sent_counter.inc();
                 Ok(())
             }
             Err(e) => {
-                counter_inc(&self.producer_requests_counter, kv!["success" => false]);
+                self.producer_requests_counter
+                    .get_or_create(&RequestLabel { success: false })
+                    .inc();
                 self.dead_letter(payload).await?;
                 Err(e)
             }

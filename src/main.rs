@@ -16,18 +16,17 @@
 
 #![forbid(unsafe_code)]
 
-use std::process::exit;
-
+use crate::cli::{Cli, ServerCommand};
+use crate::kafka::KafkaProducer;
+use crate::metrics::Metrics;
+use crate::server::Server;
 use anyhow::{Error, Result};
 use base64::alphabet;
 use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
 use clap::Parser;
 use log::SetLoggerError;
-
-use crate::cli::{Cli, ServerCommand};
-use crate::kafka::KafkaProducer;
-use crate::metrics::Metrics;
-use crate::server::Server;
+use prometheus_client::registry::Registry;
+use std::process::exit;
 
 mod cli;
 mod kafka;
@@ -98,22 +97,9 @@ async fn run() -> Result<()> {
     let (shutdown_send, mut shutdown_recv) = tokio::sync::mpsc::channel(1);
 
     let cli = Cli::parse();
+    let mut registry = Registry::with_prefix("kafkaproxy");
 
-    let metrics = Metrics::new()?;
-    let meter = metrics.meter_provider();
-    let prometheus = if let Some(addr) = cli.prometheus_address {
-        let prometheus = metrics.run(addr, shutdown_trigger_send.subscribe());
-        tokio::spawn(prometheus)
-    } else {
-        let mut r = shutdown_trigger_send.subscribe();
-        tokio::spawn(async move {
-            r.recv().await?;
-            Ok(())
-        })
-    };
-
-    let producer = KafkaProducer::new(cli.producer, &meter).await?;
-
+    let producer = KafkaProducer::new(cli.producer, &mut registry).await?;
     let server = tokio::spawn(async move {
         let server = server(cli.server);
         let result = server.run(producer, shutdown_trigger_recv, shutdown_send);
@@ -124,6 +110,18 @@ async fn run() -> Result<()> {
             }
         }
     });
+
+    let metrics = Metrics::new(registry)?;
+    let prometheus = if let Some(addr) = cli.prometheus_address {
+        let prometheus = metrics.run(addr, shutdown_trigger_send.subscribe());
+        tokio::spawn(prometheus)
+    } else {
+        let mut r = shutdown_trigger_send.subscribe();
+        tokio::spawn(async move {
+            r.recv().await?;
+            Ok(())
+        })
+    };
 
     tokio::select! {
         _ = shutdown_recv.recv() => (),

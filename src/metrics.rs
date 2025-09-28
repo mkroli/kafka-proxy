@@ -25,12 +25,8 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum_extra::TypedHeader;
 use axum_extra::headers::ContentType;
-use opentelemetry::KeyValue;
-use opentelemetry::metrics::MeterProvider;
-use opentelemetry::metrics::{Counter, Meter};
-use opentelemetry_sdk::Resource;
-use opentelemetry_sdk::metrics::SdkMeterProvider;
-use prometheus::{Encoder, Registry, TextEncoder};
+use prometheus_client::encoding::text::encode;
+use prometheus_client::registry::Registry;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast::Receiver;
 
@@ -38,16 +34,13 @@ pub const COLLECT_PERIOD_MS: u64 = 10000;
 
 pub struct Metrics {
     registry: Registry,
-    provider: SdkMeterProvider,
 }
 
 impl IntoResponse for &Metrics {
     fn into_response(self) -> Response {
-        let metric_families = self.registry.gather();
-        let encoder = TextEncoder::new();
-        let mut result = Vec::new();
-        let result = match encoder.encode(&metric_families, &mut result) {
-            Ok(()) => Ok((TypedHeader(ContentType::text_utf8()), result)),
+        let mut buffer = String::new();
+        let result = match encode(&mut buffer, &self.registry) {
+            Ok(()) => Ok((TypedHeader(ContentType::text_utf8()), buffer)),
             Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
         };
         result.into_response()
@@ -59,20 +52,8 @@ impl Metrics {
         metrics.into_response()
     }
 
-    pub fn new() -> Result<Metrics> {
-        let registry = Registry::new();
-        let exporter = opentelemetry_prometheus::exporter()
-            .with_registry(registry.clone())
-            .build()?;
-        let provider = SdkMeterProvider::builder()
-            .with_reader(exporter)
-            .with_resource(
-                Resource::builder()
-                    .with_service_name(env!("CARGO_PKG_NAME"))
-                    .build(),
-            )
-            .build();
-        Ok(Metrics { registry, provider })
+    pub fn new(registry: Registry) -> Result<Metrics> {
+        Ok(Metrics { registry })
     }
 
     pub async fn run(
@@ -91,19 +72,4 @@ impl Metrics {
             .await?;
         Ok(())
     }
-
-    pub fn meter_provider(&self) -> Meter {
-        self.provider.meter(env!("CARGO_PKG_NAME"))
-    }
-}
-
-#[macro_export]
-macro_rules! kv {
-    ($($key:expr => $value:expr),*) => {
-        &[$(KeyValue::new($key, $value)),*]
-    };
-}
-
-pub fn counter_inc(counter: &Counter<u64>, attributes: &[KeyValue]) {
-    counter.add(1, attributes)
 }
