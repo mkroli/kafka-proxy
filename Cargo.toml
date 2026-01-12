@@ -65,7 +65,7 @@ tokio-stream = { version = "0.1", features = ["sync", "io-util"] }
 hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1", "http2"] }
 axum-extra = { version = "0.12", default-features = false, features = ["typed-header"] }
-coap = { version = "0.23", optional = true }
+coap = { version = "0.24", optional = true }
 prometheus-client = "0.24"
 posixmq = { version = "1", optional = true }
 nng = { version = "1", optional = true }
