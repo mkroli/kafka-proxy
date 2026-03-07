@@ -15,14 +15,17 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
+      - name: Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        with:
+          version: 1.0
+          packages: libcurl4-gnutls-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: "rustfmt,clippy"
-      - name: Dependencies
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-gnutls-dev
       - name: Build
         run: cargo build --locked --all-features
       - name: Test
@@ -56,6 +59,11 @@ jobs:
             suffix: armv7-linux-musleabihf
             cargo: cross
     steps:
+      - name: Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        with:
+          version: 1.0
+          packages: libcurl4-gnutls-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Toolchain
