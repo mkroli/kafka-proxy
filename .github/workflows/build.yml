@@ -22,7 +22,7 @@ jobs:
         with:
           components: "rustfmt,clippy"
       - name: Dependencies
-        run: apt-get update && apt-get install -y libcurl4-gnutls-dev
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-gnutls-dev
       - name: Build
         run: cargo build --locked --all-features
       - name: Test
