@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [ "main" ]
-    tags: [ '*' ]
+    branches: ["main"]
+    tags: ["*"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,6 +21,8 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: "rustfmt,clippy"
+      - name: Dependencies
+        run: apt-get update && apt-get install -y libcurl4-gnutls-dev
       - name: Build
         run: cargo build --locked --all-features
       - name: Test
@@ -182,4 +184,4 @@ jobs:
       - name: Delete all containers from repository without tags
         uses: camargo/delete-untagged-action@v1
         with:
-         github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
