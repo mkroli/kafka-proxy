@@ -75,7 +75,7 @@ jobs:
       #   if: ${{ matrix.cargo == 'cross' }}
       - name: zigbuild Installation
         run: "pip install cargo-zigbuild"
-        if: ${{ matrix.cargo == 'cross' }}
+        # if: ${{ matrix.cargo == 'cross' }}
       - name: Build
         run: |
           cargo zigbuild --release --locked --target ${{ matrix.target }}
