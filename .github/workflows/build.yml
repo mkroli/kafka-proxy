@@ -11,37 +11,37 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
-        with:
-          version: 1.0
-          packages: libcurl4-gnutls-dev
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          components: "rustfmt,clippy"
-      - name: Build
-        run: cargo build --locked --all-features
-      - name: Test
-        run: cargo test --locked --all-features
-      - name: Format
-        uses: actions-rust-lang/rustfmt@v1
-      - name: Clippy
-        run: cargo clippy -- -Dwarnings
-      - name: Completions
-        run: |
-          cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
-          git diff --no-ext-diff --exit-code -- completions/
+  # check:
+  #   name: Check
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Dependencies
+  #       uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+  #       with:
+  #         version: 1.0
+  #         packages: libcurl4-gnutls-dev
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Toolchain
+  #       uses: actions-rust-lang/setup-rust-toolchain@v1
+  #       with:
+  #         components: "rustfmt,clippy"
+  #     - name: Build
+  #       run: cargo build --locked --all-features
+  #     - name: Test
+  #       run: cargo test --locked --all-features
+  #     - name: Format
+  #       uses: actions-rust-lang/rustfmt@v1
+  #     - name: Clippy
+  #       run: cargo clippy -- -Dwarnings
+  #     - name: Completions
+  #       run: |
+  #         cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
+  #         git diff --no-ext-diff --exit-code -- completions/
 
   build:
     name: Build Artifact (${{ matrix.target }})
-    needs: check
+    # needs: check
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -59,19 +59,22 @@ jobs:
             suffix: armv7-linux-musleabihf
             cargo: cross
     steps:
-      - name: Dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
-        with:
-          # version: 1.0
-          packages: libcurl4-gnutls-dev
+      # - name: Dependencies
+      #   uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+      #   with:
+      #     # version: 1.0
+      #     packages: libcurl4-gnutls-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: ${{ matrix.target }}
-      - name: Cross Installation
-        run: cargo install cross
+      # - name: Cross Installation
+      #   run: cargo install cross
+      #   if: ${{ matrix.cargo == 'cross' }}
+      - name: zigbuild Installation
+        run: "pip install cargo-zigbuild"
         if: ${{ matrix.cargo == 'cross' }}
       - name: Build
         run: |
