@@ -11,37 +11,37 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # check:
-  #   name: Check
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Dependencies
-  #       uses: awalsh128/cache-apt-pkgs-action@v1.6.0
-  #       with:
-  #         version: 1.0
-  #         packages: libcurl4-gnutls-dev
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Toolchain
-  #       uses: actions-rust-lang/setup-rust-toolchain@v1
-  #       with:
-  #         components: "rustfmt,clippy"
-  #     - name: Build
-  #       run: cargo build --locked --all-features
-  #     - name: Test
-  #       run: cargo test --locked --all-features
-  #     - name: Format
-  #       uses: actions-rust-lang/rustfmt@v1
-  #     - name: Clippy
-  #       run: cargo clippy -- -Dwarnings
-  #     - name: Completions
-  #       run: |
-  #         cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
-  #         git diff --no-ext-diff --exit-code -- completions/
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        with:
+          version: 1.0
+          packages: libcurl4-gnutls-dev
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: "rustfmt,clippy"
+      - name: Build
+        run: cargo build --locked --all-features
+      - name: Test
+        run: cargo test --locked --all-features
+      - name: Format
+        uses: actions-rust-lang/rustfmt@v1
+      - name: Clippy
+        run: cargo clippy -- -Dwarnings
+      - name: Completions
+        run: |
+          cargo run --bin kafka-proxy-completions -- zsh > completions/_kafka-proxy.completions.zsh
+          git diff --no-ext-diff --exit-code -- completions/
 
   build:
     name: Build Artifact (${{ matrix.target }})
-    # needs: check
+    needs: check
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -74,10 +74,6 @@ jobs:
         run: "pip install cargo-zigbuild"
       - name: Build
         run: |
-          #sudo apt-get update
-          #sudo apt-get -qq install libcurl4-gnutls-dev
-          #export CFLAGS="-isystem /usr/include/x86_64-linux-gnu -std=gnu17"
-          #export RUSTFLAGS="-L /usr/lib64"
           cargo zigbuild --release --locked --target ${{ matrix.target }}
           mv target/${{ matrix.target }}/release/${{ github.event.repository.name }} ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Store Artifacts
