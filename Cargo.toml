@@ -12,27 +12,6 @@ authors = ["Michael Krolikowski"]
 name = "kafka-proxy-completions"
 path = "src/completions.rs"
 
-[package.metadata.cross.build]
-env.passthrough = [
-    "krb5_cv_attr_constructor_destructor=yes",
-    "ac_cv_func_regcomp=yes",
-    "ac_cv_printf_positional=yes",
-    "ac_cv_gssapi_supports_spnego=yes",
-    "CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_LINKER=/usr/local/musl/bin/armv7-unknown-linux-musleabihf-gcc",
-    "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/local/musl/bin/aarch64-unknown-linux-musl-gcc",
-    "CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=/usr/local/musl/bin/x86_64-unknown-linux-musl-gcc",
-]
-xargo = false
-
-[package.metadata.cross.target.x86_64-unknown-linux-musl]
-image = "messense/rust-musl-cross:x86_64-musl"
-
-[package.metadata.cross.target.aarch64-unknown-linux-musl]
-image = "messense/rust-musl-cross:aarch64-musl"
-
-[package.metadata.cross.target.armv7-unknown-linux-musleabihf]
-image = "messense/rust-musl-cross:armv7-musleabihf"
-
 [profile.release]
 strip = "symbols"
 opt-level = "s"
@@ -57,7 +36,8 @@ num-traits = "0.2"
 num-bigint = "0.4"
 bigdecimal = "0.4"
 schema_registry_converter = { version = "4", features = ["avro"] }
-rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
+#rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "gssapi-vendored"] }
+rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored"] }
 async-trait = "0.1"
 futures = "0.3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "sync", "fs", "net"] }

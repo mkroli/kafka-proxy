@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [ "main" ]
-    tags: [ '*' ]
+    branches: ["main"]
+    tags: ["*"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,6 +15,11 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
+      - name: Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        with:
+          version: 1.0
+          packages: libcurl4-gnutls-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Toolchain
@@ -54,18 +59,22 @@ jobs:
             suffix: armv7-linux-musleabihf
             cargo: cross
     steps:
+      - name: Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+        with:
+          version: 1.0
+          packages: libcurl4-gnutls-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: ${{ matrix.target }}
-      - name: Cross Installation
-        run: cargo install cross
-        if: ${{ matrix.cargo == 'cross' }}
+      - name: zigbuild Installation
+        run: "pip install cargo-zigbuild"
       - name: Build
         run: |
-          ${{ matrix.cargo }} build --release --locked --target ${{ matrix.target }}
+          cargo zigbuild --release --locked --target ${{ matrix.target }}
           mv target/${{ matrix.target }}/release/${{ github.event.repository.name }} ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Store Artifacts
         uses: actions/upload-artifact@v4
@@ -182,4 +191,4 @@ jobs:
       - name: Delete all containers from repository without tags
         uses: camargo/delete-untagged-action@v1
         with:
-         github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
