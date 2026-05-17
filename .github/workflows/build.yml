@@ -77,9 +77,8 @@ jobs:
         run: "pip install cargo-zigbuild"
         # if: ${{ matrix.cargo == 'cross' }}
       - name: Build
-        env:
-          CFLAGS="-isystem /usr/include"
         run: |
+          export CFLAGS="-isystem /usr/include"
           cargo zigbuild --release --locked --target ${{ matrix.target }}
           mv target/${{ matrix.target }}/release/${{ github.event.repository.name }} ${{ github.event.repository.name }}_${{ matrix.suffix }}
       - name: Store Artifacts
