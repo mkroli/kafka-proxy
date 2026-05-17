@@ -1,2 +1,2 @@
 [env]
-CFLAGS = "-std=gnu17"
+CFLAGS = "-std=gnu17 -isystem /usr/include"
