@@ -64,6 +64,8 @@ jobs:
         with:
           # version: 1.0
           packages: libcurl4-gnutls-dev
+      - name: asd
+        run: find / -name curl.h
       - name: Checkout
         uses: actions/checkout@v4
       - name: Toolchain
