@@ -1,3 +1,2 @@
 [env]
-CFLAGS = "-std=gnu17 -isystem /usr/include/x86_64-linux-gnu"
-RUSTFLAGS = "-L /usr/lib64"
+CFLAGS = "-std=gnu17 -isystem /usr/include -isystem /usr/include/x86_64-linux-gnu"
