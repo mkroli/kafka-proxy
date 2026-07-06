@@ -33,7 +33,7 @@ base64 = "0.22"
 uuid = "1"
 apache-avro = "0.21"
 num-traits = "0.2"
-num-bigint = "0.4"
+num-bigint = "0.5"
 bigdecimal = "0.4"
 schema_registry_converter = { version = "4", features = ["avro"] }
 rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "static-linking"] }
