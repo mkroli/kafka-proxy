@@ -47,7 +47,7 @@ fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
         Schema::Fixed(schema) => bytes::deserialize_fixed(schema.size, json)?,
         Schema::Decimal(schema) => number::deserialize_decimal(schema.scale as u32, json)?,
         Schema::BigDecimal => number::deserialize_bigdecimal(json)?,
-        Schema::Uuid => bytes::deserialize_uuid(json)?,
+        Schema::Uuid(_) => bytes::deserialize_uuid(json)?,
         Schema::Date => datetime::deserialize_date(json)?,
         Schema::TimeMillis => datetime::deserialize_time_millis(json)?,
         Schema::TimeMicros => datetime::deserialize_time_micros(json)?,
@@ -57,7 +57,7 @@ fn deserialize(schema: &Schema, json: serde_json::Value) -> Result<Value> {
         Schema::LocalTimestampMillis => datetime::deserialize_local_timestamp_millis(json)?,
         Schema::LocalTimestampMicros => datetime::deserialize_local_timestamp_micros(json)?,
         Schema::LocalTimestampNanos => bail!("Not implemented: LocalTimestampNanos"),
-        Schema::Duration => bail!("Not implemented: Duration"),
+        Schema::Duration(_) => bail!("Not implemented: Duration"),
         Schema::Ref { .. } => bail!("Not implemented: Ref"),
     };
     Ok(value)

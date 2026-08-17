@@ -31,7 +31,7 @@ serde = "1"
 serde_json = { version = "1", features = ["arbitrary_precision"] }
 base64 = "0.23"
 uuid = "1"
-apache-avro = "0.21"
+apache-avro = "0.22"
 num-traits = "0.2"
 num-bigint = "0.5"
 bigdecimal = "0.4"

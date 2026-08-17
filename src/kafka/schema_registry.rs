@@ -17,6 +17,7 @@
 use crate::kafka::serde::deserialize_json;
 use anyhow::{Result, bail};
 use apache_avro::Schema;
+use apache_avro::writer::datum::GenericDatumWriter;
 use schema_registry_converter::async_impl::schema_registry;
 use schema_registry_converter::async_impl::schema_registry::SrSettings;
 use schema_registry_converter::schema_registry_common::{RegisteredSchema, SubjectNameStrategy};
@@ -92,7 +93,9 @@ impl SchemaRegistry {
     pub async fn encode(&self, payload: &[u8]) -> Result<Vec<u8>> {
         let json = serde_json::from_slice(payload)?;
         let value = deserialize_json(&self.schema, json)?;
-        let serialized = apache_avro::to_avro_datum(&self.schema, value)?;
+        let serialized = GenericDatumWriter::builder(&self.schema)
+            .build()?
+            .write_value_to_vec(value)?;
 
         let mut bytes = vec![0u8];
         bytes.extend_from_slice(&self.id.to_be_bytes());
