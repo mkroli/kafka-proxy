@@ -35,7 +35,7 @@ apache-avro = "0.22"
 num-traits = "0.2"
 num-bigint = "0.5"
 bigdecimal = "0.4"
-schema_registry_converter = { version = "5", features = ["avro"] }
+schema_registry_converter = { version = "6", features = ["avro"] }
 rdkafka = { version = "0.39", features = ["cmake-build", "libz-static", "ssl-vendored", "static-linking"] }
 async-trait = "0.1"
 futures = "0.3"
