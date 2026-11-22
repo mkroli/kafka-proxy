@@ -66,7 +66,7 @@ pub fn deserialize_decimal(scale: u32, json: serde_json::Value) -> Result<Value>
             let dec = BigDecimal::from_str(&format!("{n}"))?.with_scale(scale as i64);
             let (int, _) = dec.into_bigint_and_exponent();
             let bytes = int.to_signed_bytes_be();
-            Ok(Value::Decimal(apache_avro::Decimal::from(bytes)))
+            Ok(Value::Decimal(apache_avro::Decimal::new(bytes)?))
         }
         v => bail!("Types don't match: Decimal, {v}"),
     }
@@ -126,7 +126,7 @@ mod test {
                 json!(123.456789),
             )
             .unwrap(),
-            Value::Decimal(Decimal::from(vec!(0x07, 0x5B, 0xCD, 0x15)))
+            Value::Decimal(Decimal::new(vec!(0x07, 0x5B, 0xCD, 0x15)).unwrap())
         );
     }
 

@@ -81,7 +81,7 @@ mod tests {
             "name": "value",
             "type": tp,
         });
-        let schema = Schema::parse(&schema)?;
+        let schema = Schema::parse(schema)?;
         let value = deserialize_json(&schema, json)?;
         Ok(value)
     }
